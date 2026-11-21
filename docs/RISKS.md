@@ -36,6 +36,8 @@ Owner roles: RIGHTS, ARCH, MEDIA, ML, EDIT, GROWTH, DATA, QA, SEC.
 | R28 | **Dev environment ≠ production machine.** Decisions made on the container may not transfer | H | M | Container has no GPU and is ephemeral (ADR-0002) | Defer hardware decisions; portable code; operator runs inspection script | Operator hardware report differs materially | ARCH | Open |
 | R29 | **Ephemeral container loses uncommitted work and data** | M | M | Container reclaimed after inactivity | Commit/push every increment; no media stored only here | Session reset | ARCH | Open |
 | R30 | **Contradictory official platform docs** lead to wrong capacity plans | H | M | E-002, E-003, E-005 | Read live docs and query live limits (e.g. IG `content_publishing_limit`) at runtime rather than hardcoding | Quota error in production | GROWTH | Open |
+| R31 | **Upstream API drift in media/ASR libraries** breaks stages silently (e.g. PyAV signature change, E-019) | M | M | Already observed once | Pin versions in a lockfile (Phase 2); FFmpeg-decoded input instead of library decoders; e2e test in CI | e2e failure after dependency update | QA | Open |
+| R32 | **Stale cached artefacts** served after code changes | M | H | Observed once in the skeleton (candidates cached across a logic change) | Stage versions in input keys (ADR-0007); bump rule in pipeline.py; test_resume | Output unchanged after a logic change | ARCH | Mitigated |
 
 ## Top five (Phase 0 ranking)
 1. R01/R25: rights to the footage, especially Rockstar commercial use.

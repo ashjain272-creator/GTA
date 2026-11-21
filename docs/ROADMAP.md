@@ -19,12 +19,18 @@ re-plan. Gates are tagged in Git when passed. Status: ✅ done · ◐ partial ·
 | P0-09 | BLOCKERS.md, OPERATOR_TODO.md | GROWTH | ✅ | docs/ |
 | P0-10 | CLAUDE.md, smoke tests, CI skeleton | QA | ✅ | tests/unit/test_smoke.py, .github/workflows/ci.yml |
 | P0-11 | First checkpoint | WRITER | ✅ | PROGRESS.md |
-| P0-12 | Walking skeleton: synthetic fixture → ffprobe ingest → ASR (smallest CPU model) → one crude candidate → plain 9:16 render with burned captions → 3 objective checks (duration, loudness, black/silence) | ARCH | ☐ next | — |
+| P0-12 | Walking skeleton: synthetic fixture → rights gate → ffprobe ingest → faster-whisper ASR → loudness/scene analysis → candidates with gates and rejections → plan → 9:16 render with burned captions → 12 objective QA checks → run report | ARCH | ✅ | `clipops demo run`; reports/demo/20261121T215543Z; tests/e2e |
 
 **Gate G0:** hardware report (⛔ B-01) · knowledge map reviewed ✅ ·
 amendments ✅ · blockers listed ✅ · builds and smoke tests pass ✅.
 G0 is **not passed** until B-01 clears. Hardware-independent Phase 1 work may
 proceed in parallel (17.17: "do not stall the whole project").
+
+### Skeleton follow-ups (found by running it)
+- P0-13 `source classify <url>`: class E path producing a permission-request draft, with no download (spec 4.15 acceptance test 1).
+- P0-14 Asset registry check: rendering blocked when an unregistered asset is used (spec 4.15 test 3). Not reachable yet because no assets are used.
+- P0-15 Lockfile (uv) pinning faster-whisper, ctranslate2 and numpy (R31).
+- P0-16 Measure rendered caption bounds against the safe area (QA currently checks configuration only).
 
 ## Phase 1: Research and decisions (est. 4-6 sessions)
 - P1-01 Full read of platform docs; promote E-001-E-006 to VERIFIED; write

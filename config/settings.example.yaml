@@ -48,3 +48,54 @@ credentials:
 hosted_models:
   enabled: false                # Principle 6: no paid dependency without operator consent
   monthly_ceiling_usd: 0
+
+# ---------------------------------------------------------------- pipeline (walking skeleton)
+asr:
+  engine: faster-whisper        # only engine implemented; others added via Phase 1 decision 5.6 #4
+  model: base.en                # HYPOTHESIS: container test only (E-013); decide on operator machine
+  compute_type: int8
+  device: cpu
+  vad_filter: true
+  language: en
+
+analysis:
+  loudness_window_s: 0.4        # ebur128 momentary window is fixed at 400 ms
+  scene_threshold: 10.0         # scdet score threshold (0-100); HYPOTHESIS
+
+candidates:
+  min_duration_s: 8.0           # HYPOTHESIS (spec 7.7 duration guidance to be researched)
+  max_duration_s: 45.0
+  lead_in_s: 0.6                # silence kept before first word
+  tail_s: 0.8                   # reaction tail kept after last word
+  max_candidates_per_source: 5
+  min_viability: 0.2            # below this, a candidate is rejected (spec 7.8)
+  max_internal_gap_s: 3.0       # longest pause allowed inside a clip; dead air (HYPOTHESIS)
+
+render:
+  width: 1080
+  height: 1920
+  fps: 30
+  video_codec: libx264          # software: no working HW encoder on dev host (E-010)
+  crf: 20
+  preset: medium
+  audio_codec: aac
+  audio_bitrate: 192k
+  loudness_target_lufs: -14.0   # HYPOTHESIS: VERIFY platform normalisation targets (8.11)
+  true_peak_dbtp: -1.5
+  background: blur              # blur | black
+  subtitles:
+    font: DejaVu Sans
+    font_size: 64
+    max_words_per_cue: 4
+    max_cue_s: 2.5
+    margin_v: 420               # px from bottom; keeps captions above platform UI (HYPOTHESIS, 8.9 VERIFY)
+    margin_h: 80
+    outline: 4
+
+qa:
+  duration_tolerance_s: 0.25
+  loudness_tolerance_lu: 1.5
+  max_black_s: 0.5
+  max_silence_s: 2.0
+  silence_threshold_db: -50
+  contact_sheet_interval_s: 2.0

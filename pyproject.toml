@@ -11,10 +11,12 @@ license = { text = "Proprietary - operator owned" }
 dependencies = [
   "PyYAML>=6.0",
   "jsonschema>=4.20",
+  "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+asr = ["faster-whisper>=1.2,<2"]
 
 [project.scripts]
 clipops = "clipops.cli:main"
@@ -27,4 +29,5 @@ testpaths = ["tests"]
 markers = [
   "smoke: fast repository-state checks run at the start of every session",
   "media: requires ffmpeg/ffprobe on PATH",
+  "slow: end-to-end runs (tens of seconds); needs espeak-ng and faster-whisper",
 ]

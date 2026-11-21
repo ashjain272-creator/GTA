@@ -1,0 +1,122 @@
+{
+  "short_id": "short_c4e47acd_00001020_v1",
+  "path": "/home/user/GTA/data/renders/src_c4e47acd24751c13/short_c4e47acd_00001020_v1.mp4",
+  "passed": true,
+  "failed": [],
+  "review_flags": [
+    "subtitle_confidence"
+  ],
+  "checks": [
+    {
+      "name": "streams",
+      "passed": true,
+      "measured": {
+        "video": 1,
+        "audio": 1
+      },
+      "expected": {
+        "video": 1,
+        "audio": 1
+      },
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "resolution",
+      "passed": true,
+      "measured": "1080x1920",
+      "expected": "1080x1920",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "duration",
+      "passed": true,
+      "measured": 16.0,
+      "expected": "15.960 \u00b1 0.25",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "clean_decode",
+      "passed": true,
+      "measured": "no errors",
+      "expected": "no decoder errors",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "integrated_loudness",
+      "passed": true,
+      "measured": -14.59,
+      "expected": "-14.0 \u00b1 1.5 LUFS",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "true_peak",
+      "passed": true,
+      "measured": -1.71,
+      "expected": "<= -1.5 dBTP",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "black_frames",
+      "passed": true,
+      "measured": 0,
+      "expected": "<= 0.5 s",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "longest_silence",
+      "passed": true,
+      "measured": 0.0,
+      "expected": "<= 2.0 s",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "subtitle_timing",
+      "passed": true,
+      "measured": "11 cues, 0 out of range",
+      "expected": ">=1 cue, all inside clip",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "subtitle_reading_speed",
+      "passed": true,
+      "measured": 21.2,
+      "expected": "<= 25 chars/s (HYPOTHESIS, spec 8.10)",
+      "note": "",
+      "severity": "blocking"
+    },
+    {
+      "name": "subtitle_confidence",
+      "passed": false,
+      "measured": [
+        "Okay,"
+      ],
+      "expected": "no cue with a word below 0.5 confidence",
+      "note": "low-confidence cues need review",
+      "severity": "review"
+    },
+    {
+      "name": "subtitle_safe_area",
+      "passed": true,
+      "measured": {
+        "margin_v": 420,
+        "margin_h": 80
+      },
+      "expected": "margin_v >= 18% height, margin_h >= 5% width (HYPOTHESIS, VERIFY per platform 8.9)",
+      "note": "configuration check only; rendered text bounds not yet measured",
+      "severity": "blocking"
+    }
+  ],
+  "contact_sheet": "/home/user/GTA/data/work/src_c4e47acd24751c13/qa/short_c4e47acd_00001020_v1_contact.png",
+  "creative_review": "not performed: reviewer ensemble not built (Phase 6); proxies saved for review",
+  "publishable": false,
+  "publishable_reason": "skeleton output: no creative review, no contribution (spec 4.7), autonomy L0"
+}

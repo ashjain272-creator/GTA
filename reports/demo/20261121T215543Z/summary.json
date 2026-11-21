@@ -1,0 +1,35 @@
+{
+  "fixture": "/home/user/GTA/data/sources/synthetic/demo_skeleton.mp4",
+  "wer": {
+    "wer": 0.0,
+    "errors": 0,
+    "reference_words": 41,
+    "hypothesis_words": 41,
+    "note": "synthetic TTS on clean bed; NOT representative of gaming audio"
+  },
+  "source_id": "src_c4e47acd24751c13",
+  "candidates": {
+    "proposed": 2,
+    "rejected": 2
+  },
+  "top_candidate": {
+    "id": "cand_c4e47acd_00001020",
+    "start_s": 1.02,
+    "end_s": 16.98,
+    "viability": 0.6728,
+    "covers_expected_moment": true,
+    "expected_s": [
+      2.0,
+      17.0
+    ]
+  },
+  "plan_id": "plan_c4e47acd_00001020_v1",
+  "short": "/home/user/GTA/data/renders/src_c4e47acd24751c13/short_c4e47acd_00001020_v1.mp4",
+  "qa_passed": true,
+  "qa_failed": [],
+  "qa_review_flags": [
+    "subtitle_confidence"
+  ],
+  "status": "ok",
+  "run_report": "run_dce92d150702.json"
+}

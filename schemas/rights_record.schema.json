@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rights_record.schema.json",
+  "title": "Rights record (spec 4.14)",
+  "type": "object",
+  "required": ["source_id", "platform", "class", "owner_declared_by_operator",
+               "owner_verified_by_oauth", "game_policies", "third_party_content_flags",
+               "monetisation_allowed", "created_at", "last_reviewed"],
+  "properties": {
+    "source_id": {"type": "string", "pattern": "^src_[0-9a-f]{16}$"},
+    "platform": {"enum": ["youtube", "twitch", "file", "other"]},
+    "origin_url": {"type": ["string", "null"]},
+    "origin_path": {"type": ["string", "null"]},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "class": {"enum": ["A", "B", "C", "D", "E", "F"]},
+    "owner_declared_by_operator": {"type": "boolean"},
+    "owner_verified_by_oauth": {"type": "boolean"},
+    "grant": {
+      "type": ["object", "null"],
+      "properties": {
+        "document_ref": {"type": "string"},
+        "scope": {"type": "object"},
+        "expires": {"type": ["string", "null"]},
+        "attribution": {"type": ["string", "null"]},
+        "approval_required": {"type": "boolean"}
+      }
+    },
+    "game_policies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["game", "policy_checked", "risk"],
+        "properties": {
+          "game": {"type": "string"},
+          "policy_ref": {"type": ["string", "null"]},
+          "policy_checked": {"type": "string"},
+          "risk": {"enum": ["low", "medium", "high"]}
+        }
+      }
+    },
+    "third_party_content_flags": {"type": "array", "items": {"type": "string"}},
+    "monetisation_allowed": {"enum": ["yes", "no", "unknown"]},
+    "synthetic_fixture": {"type": "boolean"},
+    "created_at": {"type": "string"},
+    "last_reviewed": {"type": "string"},
+    "notes": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"class": {"const": "B"}}},
+     "then": {"required": ["grant"], "properties": {"grant": {"type": "object", "required": ["document_ref", "scope"]}}}},
+    {"if": {"properties": {"class": {"const": "C"}}},
+     "then": {"required": ["grant"], "properties": {"grant": {"type": "object", "required": ["document_ref"]}}}}
+  ]
+}

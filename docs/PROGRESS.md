@@ -39,3 +39,52 @@ Append-only. CHECKPOINT entries are safe resumption points.
 - **Hazards:** the container is ephemeral (push every increment). Platform
   evidence is SECONDARY, so do not build adapters on it. The GTA focus is an
   assumption (A-001).
+
+---
+
+## 2026-11-21: Walking skeleton (P0-12)  [ARCH, ML, MEDIA, QA, SEC]
+- Network: the default environment blocked Hugging Face. With operator approval,
+  created environment "GTA" adding only HF hosts (ADR-0008).
+- ASR: pocketsphinx was unusable (E-018). faster-whisper base.en int8 adopted
+  for the skeleton (ADR-0006).
+- Implemented `clipops` stages: rights gate (fails closed; Rockstar registry
+  → monetisation off), probe, transcription, loudness curve, scene cuts,
+  candidates (heuristic, gated, with recorded rejections), plan (one honest
+  skeleton style), 9:16 render (blur fill, libass captions, two-pass loudnorm
+  plus limiter), 12 objective QA checks (blocking vs review severity),
+  contact sheet, run report, resumable per-stage artefacts (ADR-0007).
+- CLI: `source add`, `ingest run`, `analyse run`, `candidates generate`,
+  `plan make`, `render run`, `qa run`, `demo run`, `health`.
+- Defects found by running the skeleton and fixed: segment-based grouping
+  merged across silences (E-014); stale cache after a logic change (R32); dead
+  air inside a candidate (new gate); true peak above the ceiling (E-015);
+  ranker limitation warning missing on cached runs.
+- Demo (synthetic fixture): WER 0.0 on 41 words; top candidate 1.02-16.98 s vs
+  planted 2-17 s; QA passed all blocking checks; one review flag (low-confidence
+  "Okay,"). Recorded in reports/demo/20261121T215543Z.
+- Tests: 31 pass (smoke, rights, candidates/subtitles, artefacts, resume,
+  e2e including an injected-crash recovery test). CI gains an e2e job; it has
+  not run on GitHub yet.
+
+### Self-critique (spec 2.6 step 7)
+1. The fixture is easy (clean TTS, synthetic video). The skeleton proves
+   wiring, not quality. Every quality number here is non-transferable.
+2. The ranker is a hand-weighted heuristic with no evaluation. It ranked a
+   low-energy filler window (0.61) close to the real moment (0.67), so it barely
+   discriminates.
+3. The QA safe-area check reads configuration, not rendered pixels. Captions
+   could still overflow on long words or large fonts without failing QA.
+
+### CHECKPOINT 2026-11-21-b
+- **Phase:** 0 (P0-12 done). **Next gate:** G0, blocked only by B-01.
+- **Verified:** `pytest -q`: 31 passed. `clipops demo run` exits 0.
+- **Half-finished:** none.
+- **Exact next step:** P1-01, a full read of the platform docs (YouTube quota and
+  audit, TikTok Content Posting, Instagram publishing, Twitch ToS and Developer
+  Agreement) to promote E-001-E-006 and write docs/PLATFORM_LIMITS.md. Then
+  P0-13 (class E URL path) and P0-15 (lockfile).
+- **Relevant files:** src/clipops/orchestrator/pipeline.py (STAGE_VERSIONS:
+  bump on any output-changing edit), config/settings.example.yaml,
+  docs/ROADMAP.md.
+- **Hazards:** HF model downloads need the "GTA" environment. Sessions on the
+  Default environment will fail ASR.

@@ -1,0 +1,119 @@
+{
+  "plan_id": "plan_c4e47acd_00001020_v1",
+  "candidate_id": "cand_c4e47acd_00001020",
+  "source_id": "src_c4e47acd24751c13",
+  "version": 1,
+  "intent": "Present the moment: \"Okay, watch this. I am going to jump the car over the bridge. Here we go. No way\"",
+  "style": {
+    "name": "skeleton-plain",
+    "parameters": {},
+    "selected_because": [
+      "walking skeleton: style engine not built yet (Phase 5); this is the only style available, so no selection was made"
+    ],
+    "runner_up": null,
+    "runner_up_reason": null
+  },
+  "structure": {
+    "name": "linear_build"
+  },
+  "timeline": [
+    {
+      "type": "source_segment",
+      "src_start_us": 1020000,
+      "src_end_us": 16980000,
+      "speed": 1.0
+    }
+  ],
+  "layout": {
+    "name": "blur_fill_center",
+    "reason": "no subject tracking yet; full frame kept visible"
+  },
+  "subtitles": {
+    "cues": [
+      {
+        "start_us": 600000,
+        "end_us": 1220000,
+        "text": "Okay,",
+        "min_confidence": 0.4809
+      },
+      {
+        "start_us": 1620000,
+        "end_us": 2260000,
+        "text": "watch this.",
+        "min_confidence": 0.9808
+      },
+      {
+        "start_us": 2860000,
+        "end_us": 3560000,
+        "text": "I am going to",
+        "min_confidence": 0.8251
+      },
+      {
+        "start_us": 3560000,
+        "end_us": 4600000,
+        "text": "jump the car over",
+        "min_confidence": 0.9916
+      },
+      {
+        "start_us": 4600000,
+        "end_us": 5120000,
+        "text": "the bridge.",
+        "min_confidence": 0.997
+      },
+      {
+        "start_us": 5820000,
+        "end_us": 6740000,
+        "text": "Here we go.",
+        "min_confidence": 0.9715
+      },
+      {
+        "start_us": 9360000,
+        "end_us": 9960000,
+        "text": "No way.",
+        "min_confidence": 0.9648
+      },
+      {
+        "start_us": 10480000,
+        "end_us": 11660000,
+        "text": "That actually worked.",
+        "min_confidence": 0.9581
+      },
+      {
+        "start_us": 12920000,
+        "end_us": 13780000,
+        "text": "That was the best",
+        "min_confidence": 0.9927
+      },
+      {
+        "start_us": 13780000,
+        "end_us": 14840000,
+        "text": "jump I have ever",
+        "min_confidence": 0.947
+      },
+      {
+        "start_us": 14840000,
+        "end_us": 15160000,
+        "text": "done.",
+        "min_confidence": 0.9987
+      }
+    ],
+    "style": {
+      "font": "DejaVu Sans",
+      "font_size": 64,
+      "max_words_per_cue": 4,
+      "max_cue_s": 2.5,
+      "margin_v": 420,
+      "margin_h": 80,
+      "outline": 4
+    }
+  },
+  "audio": {
+    "loudness_target_lufs": -14.0,
+    "true_peak_dbtp": -1.5,
+    "music": null,
+    "sfx": []
+  },
+  "duration_us": 15960000,
+  "contribution": [],
+  "contribution_note": "none yet: skeleton output is not publishable (fails spec 4.7 contribution test)"
+}

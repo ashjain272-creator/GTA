@@ -1,0 +1,177 @@
+{
+  "run_id": "run_dce92d150702",
+  "purpose": "demo run (walking skeleton)",
+  "started_at": "2026-11-21T21:55:43+00:00",
+  "ended_at": "2026-11-21T21:56:13+00:00",
+  "code_version": "0.0.1",
+  "config_hash": "899e38d33257b5f4",
+  "host": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "python": "3.13.18"
+  },
+  "hardware_role": "cloud-dev-container",
+  "stages": [
+    {
+      "name": "fixture",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:43+00:00",
+      "duration_s": 5.821
+    },
+    {
+      "name": "source_add",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:49+00:00",
+      "source_id": "src_c4e47acd24751c13",
+      "duration_s": 0.02
+    },
+    {
+      "name": "ingest",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:49+00:00",
+      "duration_s": 0.068
+    },
+    {
+      "name": "transcribe",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:49+00:00",
+      "realtime_factor": 0.049,
+      "duration_s": 2.877
+    },
+    {
+      "name": "audio_analysis",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:52+00:00",
+      "duration_s": 0.283
+    },
+    {
+      "name": "scene_detection",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:52+00:00",
+      "duration_s": 1.284
+    },
+    {
+      "name": "wer",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:54+00:00",
+      "wer": 0.0,
+      "errors": 0,
+      "reference_words": 41,
+      "hypothesis_words": 41,
+      "duration_s": 0.001
+    },
+    {
+      "name": "candidates",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:54+00:00",
+      "proposed": 2,
+      "rejected": 2,
+      "duration_s": 0.003
+    },
+    {
+      "name": "plan",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:54+00:00",
+      "plan_id": "plan_c4e47acd_00001020_v1",
+      "duration_s": 0.002
+    },
+    {
+      "name": "render",
+      "status": "ok",
+      "started_at": "2026-11-21T21:55:54+00:00",
+      "short_id": "short_c4e47acd_00001020_v1",
+      "duration_s": 15.876
+    },
+    {
+      "name": "qa",
+      "status": "ok",
+      "started_at": "2026-11-21T21:56:09+00:00",
+      "passed": true,
+      "failed": [],
+      "duration_s": 3.405
+    }
+  ],
+  "warnings": [
+    {
+      "stage": "source_add",
+      "code": "monetisation",
+      "message": "monetisation_allowed=no (game policy / rights class)"
+    },
+    {
+      "stage": "candidates",
+      "code": "heuristic_ranker",
+      "message": "ranking uses skeleton-heuristic-2: unvalidated, uncertainty reported high"
+    },
+    {
+      "stage": "plan",
+      "code": "no_style_engine",
+      "message": "single skeleton style; selection logic not built (Phase 5)"
+    }
+  ],
+  "fallbacks": [],
+  "skipped": [],
+  "artefacts": [
+    {
+      "kind": "render",
+      "path": "/home/user/GTA/data/renders/src_c4e47acd24751c13/short_c4e47acd_00001020_v1.mp4",
+      "sha256": "4def902a3c6fe3523ce756c854f83587ad815c7f9cdb25ead3fe89f76fc62ce9",
+      "bytes": 3605687
+    },
+    {
+      "kind": "contact_sheet",
+      "path": "/home/user/GTA/data/work/src_c4e47acd24751c13/qa/short_c4e47acd_00001020_v1_contact.png",
+      "sha256": "b716ce3bb1c4cbdb83ab66ce8a28691f588e9d1fa03a59b2e24034c50aaf1188",
+      "bytes": 277188
+    }
+  ],
+  "models": {
+    "asr": "faster-whisper:base.en:int8"
+  },
+  "qa_summary": {
+    "short_id": "short_c4e47acd_00001020_v1",
+    "passed": true,
+    "failed": [],
+    "review_flags": [
+      "subtitle_confidence"
+    ],
+    "publishable": false
+  },
+  "publication_summary": "none: publishing not implemented (L0)",
+  "operator_actions": [
+    "Review short_c4e47acd_00001020_v1: subtitle_confidence"
+  ],
+  "status": "ok",
+  "demo_summary": {
+    "fixture": "/home/user/GTA/data/sources/synthetic/demo_skeleton.mp4",
+    "wer": {
+      "wer": 0.0,
+      "errors": 0,
+      "reference_words": 41,
+      "hypothesis_words": 41,
+      "note": "synthetic TTS on clean bed; NOT representative of gaming audio"
+    },
+    "source_id": "src_c4e47acd24751c13",
+    "candidates": {
+      "proposed": 2,
+      "rejected": 2
+    },
+    "top_candidate": {
+      "id": "cand_c4e47acd_00001020",
+      "start_s": 1.02,
+      "end_s": 16.98,
+      "viability": 0.6728,
+      "covers_expected_moment": true,
+      "expected_s": [
+        2.0,
+        17.0
+      ]
+    },
+    "plan_id": "plan_c4e47acd_00001020_v1",
+    "short": "/home/user/GTA/data/renders/src_c4e47acd24751c13/short_c4e47acd_00001020_v1.mp4",
+    "qa_passed": true,
+    "qa_failed": [],
+    "qa_review_flags": [
+      "subtitle_confidence"
+    ]
+  }
+}

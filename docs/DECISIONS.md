@@ -61,3 +61,35 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
 - **Choice:** All platforms start at L0 (prepare-only bundles). L1 is enabled per
   platform once an approved integration and operator consent exist. Spec 11.6
   says default L1/L2. L0 is stricter, so it does not weaken a requirement.
+
+## ADR-0006 Walking-skeleton ASR engine: faster-whisper (provisional)  [ML]
+- **Date:** 2026-11-21 · **Status:** Accepted for the skeleton only. Decision 5.6 #4 stays open.
+- **Options tried:** pocketsphinx 5.1.1 (bundled en-us model, offline):
+  transcript was unrelated to the speech on a clean 11.6 s TTS clip (E-018).
+  faster-whisper 1.2.1 (CTranslate2 int8, CPU): tiny.en, base.en and small.en
+  got every word right on the same clip (E-013).
+- **Choice:** faster-whisper `base.en` int8 as the default in
+  `config/settings.example.yaml`. Audio is decoded by FFmpeg into float32 and
+  passed as an array, which avoids a PyAV API incompatibility (E-019).
+- **Revisit:** Phase 1 benchmark on the operator machine with real gaming audio
+  (B-01, B-02). No accuracy claim is made from synthetic speech.
+
+## ADR-0007 Skeleton artefact store: per-source JSON files  [ARCH]
+- **Date:** 2026-11-21 · **Status:** Accepted for Phases 0-1. Decision 5.6 #3 (SQLite vs PostgreSQL) stays open.
+- **Choice:** each stage writes one JSON artefact under `data/work/<source_id>/`.
+  Writes are atomic (temp file + fsync + rename). Each artefact embeds its
+  input key = hash(code version, stage version, upstream keys, relevant config).
+  A matching key means the stage is skipped on rerun.
+- **Why:** this is the smallest thing that gives resumability (P9) and
+  inspectable state, and it defers the DB choice until query needs are known.
+- **Known limits:** no cross-source queries, no locking for parallel workers.
+  Both are needed by Phase 4 (library ranking) and will drive the DB decision.
+
+## ADR-0008 Cloud environment for this repository  [SEC]
+- **Date:** 2026-11-21 · **Status:** Accepted (operator approved in the session)
+- **Context:** the default cloud environment blocked huggingface.co, so no ASR
+  model weights could be downloaded (E-012).
+- **Choice:** a personal environment "GTA", scoped to this repository, that adds
+  Hugging Face hosts only (huggingface.co, its LFS/Xet CDN hosts and
+  us.aws.cdn.hf.co). Package registries were already allowed.
+- **Consequence:** CI and the operator machine download models from the same hosts.

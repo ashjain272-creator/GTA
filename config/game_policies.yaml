@@ -1,0 +1,13 @@
+# Game publisher policy registry (spec 4.6). Every entry cites its source and check date.
+# Claims here are SECONDARY until promoted in docs/EVIDENCE.md.
+rockstar:
+  publisher: Rockstar Games / Take-Two Interactive
+  titles: ["Grand Theft Auto V", "GTA Online", "Grand Theft Auto VI", "Red Dead Redemption 2"]
+  policy_url: https://support.rockstargames.com/articles/200153756/Policy-on-posting-copyrighted-Rockstar-Games-material
+  policy_checked: "2026-11-21"
+  evidence: E-007
+  commercial_use: licence_required     # non-commercial fan use tolerated; monetisation needs a Take-Two licence
+  monetisation_permitted: false        # AM-05: flips only when a licence record exists
+  restricted_content: [standalone_cutscene, spoiler, isolated_in_game_tv, pre_release_or_leak]
+  known_third_party_risks: [in_game_radio_music]   # R26, ASSUMPTION A-010
+  risk: high

@@ -9,8 +9,9 @@ Approved deviations are in `docs/AMENDMENTS.md`.
 1. Read `docs/PROGRESS.md` (latest CHECKPOINT first), open items in
    `docs/RISKS.md`, and the last 20 entries of `docs/DECISIONS.md`.
 2. State the current phase and next gate in 2-3 sentences.
-3. Run `pip install -e ".[dev]"` if needed, then `pytest -m smoke -q` and
-   `clipops health`. If the repo is not green, fixing that comes first.
+3. Run `pip install -e ".[dev,asr]"` if needed (plus `apt-get install espeak-ng`
+   for the demo fixture), then `pytest -m smoke -q` and `clipops health`. If the
+   repo is not green, fixing that comes first. Full suite: `pytest -q` (~40 s).
 
 ## Session end
 Write a CHECKPOINT entry in `docs/PROGRESS.md`: done, verified, half-finished,
@@ -49,6 +50,9 @@ lawful alternative instead.
 - Large media lives in git-ignored `data/` only. Fixtures need a documented origin and licence.
 - The CLI registers only implemented commands (ADR-0004). Mocks only in tests, named as mocks.
 - Every fallback emits a structured warning and appears in the run report.
+- Pipeline stages cache artefacts by input key. When a change alters a stage's
+  output, bump its entry in `STAGE_VERSIONS` (src/clipops/orchestrator/pipeline.py).
+- Hugging Face model downloads need the cloud environment "GTA" (ADR-0008).
 
 ## Repository map
 - `docs/`: spec, ledgers (DECISIONS, EVIDENCE, RISKS, ASSUMPTIONS, PROGRESS),
@@ -56,6 +60,10 @@ lawful alternative instead.
   OPERATOR_TODO, ROADMAP
 - `config/`: hardware.json, credentials_presence.json, settings.example.yaml, platforms/
 - `src/clipops/`: package; stage subpackages per spec 2.4
-- `scripts/`: inspect_hardware.py, check_credentials.py (stdlib only)
+- `scripts/`: inspect_hardware.py, check_credentials.py (stdlib only), make_synthetic_fixture.py
+- `src/clipops/`: ingest (rights, probe), analysis (transcribe, audio, scenes),
+  candidates, editing (plan), render (vertical, subtitles), qa (checks, wer),
+  orchestrator (pipeline), demo, runreport, config, cli
 - `tests/`: unit (smoke), integration, e2e, fixtures
-- `schemas/`, `skills/`, `tools/`, `reports/`: populated from Phase 1 onward
+- `schemas/`: rights_record.schema.json · `config/game_policies.yaml`: publisher policy registry
+- `reports/demo/`: recorded demo runs · `skills/`, `tools/`: from Phase 1 onward
