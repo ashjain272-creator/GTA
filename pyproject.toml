@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clipops"
+version = "0.0.1"
+description = "Local-first, rights-aware short-form gaming clip operation (see docs/MASTER_PROMPT.md)."
+requires-python = ">=3.11"
+license = { text = "Proprietary - operator owned" }
+dependencies = [
+  "PyYAML>=6.0",
+  "jsonschema>=4.20",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+clipops = "clipops.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "smoke: fast repository-state checks run at the start of every session",
+  "media: requires ffmpeg/ffprobe on PATH",
+]

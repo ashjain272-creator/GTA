@@ -1,0 +1,289 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-21T21:06:21+00:00",
+  "role": "cloud-dev-container",
+  "os": {
+    "system": "Linux",
+    "release": "6.18.44-fc-v726",
+    "version": "#1 SMP PREEMPT_DYNAMIC @0",
+    "machine": "x86_64",
+    "distribution": "Ubuntu 24.04.5 LTS",
+    "virtualised": "docker"
+  },
+  "cpu": {
+    "logical_cores": 4,
+    "model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "physical_cores": 4,
+    "inference_extensions": [
+      "amx_bf16",
+      "amx_int8",
+      "amx_tile",
+      "avx",
+      "avx2",
+      "avx512_bf16",
+      "avx512_vnni",
+      "avx512bw",
+      "avx512f",
+      "avx_vnni",
+      "f16c",
+      "fma"
+    ]
+  },
+  "memory": {
+    "total_bytes": 16869113856,
+    "available_bytes": 16313872384,
+    "swap_total_bytes": 0,
+    "speed": "not_measured"
+  },
+  "gpu": {
+    "devices": [],
+    "compute_stacks": {}
+  },
+  "ffmpeg": {
+    "present": true,
+    "path": "/usr/bin/ffmpeg",
+    "version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+    "configuration": [
+      "--prefix=/usr",
+      "--extra-version=3ubuntu5",
+      "--toolchain=hardened",
+      "--libdir=/usr/lib/x86_64-linux-gnu",
+      "--incdir=/usr/include/x86_64-linux-gnu",
+      "--arch=amd64",
+      "--enable-gpl",
+      "--disable-stripping",
+      "--disable-omx",
+      "--enable-gnutls",
+      "--enable-libaom",
+      "--enable-libass",
+      "--enable-libbs2b",
+      "--enable-libcaca",
+      "--enable-libcdio",
+      "--enable-libcodec2",
+      "--enable-libdav1d",
+      "--enable-libflite",
+      "--enable-libfontconfig",
+      "--enable-libfreetype",
+      "--enable-libfribidi",
+      "--enable-libglslang",
+      "--enable-libgme",
+      "--enable-libgsm",
+      "--enable-libharfbuzz",
+      "--enable-libmp3lame",
+      "--enable-libmysofa",
+      "--enable-libopenjpeg",
+      "--enable-libopenmpt",
+      "--enable-libopus",
+      "--enable-librubberband",
+      "--enable-libshine",
+      "--enable-libsnappy",
+      "--enable-libsoxr",
+      "--enable-libspeex",
+      "--enable-libtheora",
+      "--enable-libtwolame",
+      "--enable-libvidstab",
+      "--enable-libvorbis",
+      "--enable-libvpx",
+      "--enable-libwebp",
+      "--enable-libx265",
+      "--enable-libxml2",
+      "--enable-libxvid",
+      "--enable-libzimg",
+      "--enable-openal",
+      "--enable-opencl",
+      "--enable-opengl",
+      "--disable-sndio",
+      "--enable-libvpl",
+      "--disable-libmfx",
+      "--enable-libdc1394",
+      "--enable-libdrm",
+      "--enable-libiec61883",
+      "--enable-chromaprint",
+      "--enable-frei0r",
+      "--enable-ladspa",
+      "--enable-libbluray",
+      "--enable-libjack",
+      "--enable-libpulse",
+      "--enable-librabbitmq",
+      "--enable-librist",
+      "--enable-libsrt",
+      "--enable-libssh",
+      "--enable-libsvtav1",
+      "--enable-libx264",
+      "--enable-libzmq",
+      "--enable-libzvbi",
+      "--enable-lv2",
+      "--enable-sdl2",
+      "--enable-libplacebo",
+      "--enable-librav1e",
+      "--enable-pocketsphinx",
+      "--enable-librsvg",
+      "--enable-libjxl",
+      "--enable-shared"
+    ],
+    "hwaccels": [
+      "vdpau",
+      "cuda",
+      "vaapi",
+      "qsv",
+      "drm",
+      "opencl",
+      "vulkan"
+    ],
+    "encoders_of_interest": {
+      "h264_nvenc": true,
+      "hevc_nvenc": true,
+      "av1_nvenc": true,
+      "h264_videotoolbox": false,
+      "hevc_videotoolbox": false,
+      "h264_qsv": true,
+      "hevc_qsv": true,
+      "av1_qsv": true,
+      "h264_vaapi": true,
+      "hevc_vaapi": true,
+      "av1_vaapi": true,
+      "h264_amf": false,
+      "hevc_amf": false,
+      "av1_amf": false,
+      "h264_mf": false,
+      "hevc_mf": false,
+      "h264_v4l2m2m": true,
+      "libx264": true,
+      "libx265": true,
+      "libsvtav1": true,
+      "libaom-av1": true,
+      "libvpx-vp9": true,
+      "aac": true,
+      "libopus": true,
+      "libfdk_aac": false
+    },
+    "filters_of_interest": {
+      "subtitles": true,
+      "ass": true,
+      "drawtext": true,
+      "loudnorm": true,
+      "ebur128": true,
+      "scdet": true,
+      "select": true,
+      "scale": true,
+      "zscale": true,
+      "crop": true,
+      "libvmaf": false,
+      "ssim": true,
+      "psnr": true,
+      "silencedetect": true,
+      "showspectrumpic": true,
+      "afftdn": true,
+      "arnndn": true,
+      "sidechaincompress": true,
+      "tonemap": true
+    },
+    "encode_tests": [
+      {
+        "encoder": "libx264",
+        "ok": true,
+        "encode_seconds_for_150_frames": 2.748,
+        "encode_fps": 54.6,
+        "output_bytes": 5074327,
+        "decode_ok": true,
+        "decode_fps": 353.4
+      },
+      {
+        "encoder": "h264_nvenc",
+        "ok": false,
+        "encode_seconds_for_150_frames": 0.049,
+        "error": "[h264_nvenc @ 0x56446baddbc0] Cannot load libcuda.so.1"
+      },
+      {
+        "encoder": "hevc_nvenc",
+        "ok": false,
+        "encode_seconds_for_150_frames": 0.053,
+        "error": "[hevc_nvenc @ 0x55974a08fbc0] Cannot load libcuda.so.1"
+      },
+      {
+        "encoder": "av1_nvenc",
+        "ok": false,
+        "encode_seconds_for_150_frames": 0.04,
+        "error": "[av1_nvenc @ 0x561bd92b5bc0] Cannot load libcuda.so.1"
+      },
+      {
+        "encoder": "h264_qsv",
+        "ok": false,
+        "encode_seconds_for_150_frames": 0.05,
+        "error": "[h264_qsv @ 0x55a4cf21dbc0] Error creating a MFX session: -9."
+      },
+      {
+        "encoder": "hevc_qsv",
+        "ok": false,
+        "encode_seconds_for_150_frames": 0.051,
+        "error": "[hevc_qsv @ 0x55ad99aa9bc0] Error creating a MFX session: -9."
+      },
+      {
+        "encoder": "av1_qsv",
+        "ok": false,
+        "encode_seconds_for_150_frames": 0.051,
+        "error": "[av1_qsv @ 0x56068bc63bc0] Error creating a MFX session: -9."
+      },
+      {
+        "encoder": "h264_vaapi",
+        "ok": false,
+        "error": "no DRI render node"
+      },
+      {
+        "encoder": "hevc_vaapi",
+        "ok": false,
+        "error": "no DRI render node"
+      },
+      {
+        "encoder": "av1_vaapi",
+        "ok": false,
+        "error": "no DRI render node"
+      },
+      {
+        "encoder": "h264_v4l2m2m",
+        "ok": false,
+        "encode_seconds_for_150_frames": 0.04,
+        "error": "[h264_v4l2m2m @ 0x5648fe14cbc0] Could not find a valid device"
+      }
+    ]
+  },
+  "storage": {
+    "volumes": [
+      {
+        "path": "/root",
+        "total_bytes": 270553174016,
+        "free_bytes": 64422273024
+      }
+    ],
+    "repo_volume_benchmark": {
+      "size_mib": 256,
+      "seq_write_mib_s": 920.4,
+      "seq_read_mib_s_page_cache_likely": 7294.6,
+      "note": "read figure is optimistic: file was just written and is likely cached"
+    },
+    "media_type": "not_determined_by_script (SSD/HDD/network: confirm manually)"
+  },
+  "network": {
+    "measured": false,
+    "reason": "skipped by flag"
+  },
+  "software": {
+    "python": "Python 3.13.18",
+    "node": "v22.23.5",
+    "npm": "10.9.9",
+    "git": "git version 2.43.0",
+    "ffprobe": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers",
+    "docker": "Docker version 29.10.0, build fdd4b8e",
+    "podman": null,
+    "uv": "uv 0.11.32 (x86_64-unknown-linux-gnu)",
+    "pip": "pip 24.0 from /usr/lib/python3/dist-packages/pip (python 3.13)",
+    "pandoc": "pandoc 3.1.3",
+    "brew": null,
+    "winget": null
+  },
+  "thermal": {
+    "measured": false,
+    "reason": "10-minute sustained-load test not run by default; use --thermal on laptops",
+    "is_virtualised": true
+  }
+}

@@ -1,0 +1,50 @@
+# clipops settings template. Copy to config/settings.yaml (git-ignored) and edit.
+# Every tunable lives here, never in code (spec 2.7 "hidden hardcoding").
+# Values marked HYPOTHESIS are starting points awaiting evidence (spec 18.2 E2).
+
+operator:
+  timezone: UTC                 # ASSUMPTION A-006 until operator states it
+  languages: [en]               # ASSUMPTION A-004
+  weekly_review_minutes: 60     # ASSUMPTION A-007
+
+paths:
+  data_root: data               # relative to repo root; large media lives here only
+  sources: data/sources
+  work: data/work
+  renders: data/renders
+  published: data/published
+  db: data/db/clipops.sqlite3   # DECISION pending (5.6 #3)
+
+resources:
+  max_heavy_jobs: 2             # HYPOTHESIS: half of logical cores on dev container
+  min_free_disk_gib: 20         # job admission stops below this (R11)
+
+rights:
+  # Source classes A-F per spec 4.3. Class E and F never enter the pipeline.
+  allowed_production_classes: [A, B, C]
+  require_game_policy_record: true
+
+publishing:
+  # Autonomy levels per spec 11.6. The system never raises these itself.
+  default_autonomy_level: L0
+  platforms:
+    youtube:   { enabled: false, autonomy_level: L0 }
+    tiktok:    { enabled: false, autonomy_level: L0 }
+    instagram: { enabled: false, autonomy_level: L0 }
+    twitch:    { enabled: false, autonomy_level: L0 }
+
+credentials:
+  # Names of environment variables only. Values are never stored in this file.
+  youtube_client_secrets_file_env: CLIPOPS_YOUTUBE_CLIENT_SECRETS_FILE
+  youtube_token_file_env: CLIPOPS_YOUTUBE_TOKEN_FILE
+  tiktok_client_key_env: CLIPOPS_TIKTOK_CLIENT_KEY
+  tiktok_client_secret_env: CLIPOPS_TIKTOK_CLIENT_SECRET
+  meta_app_id_env: CLIPOPS_META_APP_ID
+  meta_app_secret_env: CLIPOPS_META_APP_SECRET
+  ig_user_id_env: CLIPOPS_IG_USER_ID
+  twitch_client_id_env: CLIPOPS_TWITCH_CLIENT_ID
+  twitch_client_secret_env: CLIPOPS_TWITCH_CLIENT_SECRET
+
+hosted_models:
+  enabled: false                # Principle 6: no paid dependency without operator consent
+  monthly_ceiling_usd: 0

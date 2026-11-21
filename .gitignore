@@ -1,0 +1,30 @@
+# Working data and media never enter version control (spec 2.4)
+data/
+!data/.gitkeep
+*.mp4
+*.mkv
+*.mov
+*.webm
+*.wav
+*.flac
+*.m4a
+!tests/fixtures/**/*.mp4
+!tests/fixtures/**/*.wav
+
+# Secrets
+secrets/
+.env
+.env.*
+*.token.json
+client_secret*.json
+config/settings.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
