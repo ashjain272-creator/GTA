@@ -20,7 +20,7 @@ clipops demo run                  # synthetic fixture → short + QA + run repor
 ## Operator: first actions
 See `docs/OPERATOR_TODO.md`. The most important:
 ```bash
-python scripts/inspect_hardware.py --role operator-machine   # on your own computer
+python3 scripts/inspect_hardware.py --role operator-machine  # on your own computer, inside the cloned repo
 ```
 
 ## Where things are

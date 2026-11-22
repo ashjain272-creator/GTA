@@ -11,13 +11,18 @@ them against the live docs and updates this file.
 - **Blocks:** hardware-dependent decisions (spec 5.6 #4, #5, #7, #9, #12,
   concurrency), Gate G0 hardware criterion, DoD item 1.
 - **Why:** this session runs in a cloud container. No operator computer is attached.
-- **Operator steps (on the computer that will run the system):**
-  1. Install Git, Python ≥3.11 and FFmpeg (with ffprobe).
-  2. `git clone <this repo>` and `git checkout claude/new-session-ztycbf`
-  3. `python scripts/inspect_hardware.py --role operator-machine`
-     (on a laptop, add `--thermal 10`; it runs a 10-minute encode load).
-  4. Commit `config/hardware.json` and `docs/HARDWARE_REPORT.md`, or paste
-     their contents into the session.
+- **Operator steps (on the computer that will run the system).** macOS has
+  no `python` command; use `python3`. The script must be run from inside the
+  cloned repository, not from the home folder.
+  ```bash
+  xcode-select --install          # only if git/python3 are missing (installs Apple's command line tools)
+  brew install ffmpeg             # needed for the encoder tests (Homebrew: https://brew.sh)
+  cd ~ && git clone -b claude/new-session-ztycbf https://github.com/ashjain272-creator/GTA.git
+  cd GTA
+  python3 scripts/inspect_hardware.py --role operator-machine
+  cat docs/HARDWARE_REPORT.md     # paste this output into the session
+  ```
+  On a laptop, add `--thermal 10` (a 10-minute encode load).
   - Alternative: connect the computer to this session through Remote Control
     in the Claude desktop app, and the inspection runs directly.
 - **Confirmation:** `clipops health` shows `hardware:operator-machine-inspected: ok`.
