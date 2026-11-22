@@ -1,6 +1,6 @@
 # Hardware Report
 
-- **Generated:** 2026-11-21T21:06:21+00:00
+- **Generated:** 2026-11-22T13:51:29+00:00
 - **Machine role:** `cloud-dev-container`
 - **Generator:** `scripts/inspect_hardware.py` (schema v1)
 
@@ -20,7 +20,7 @@
 - Inference-relevant extensions: amx_bf16, amx_int8, amx_tile, avx, avx2, avx512_bf16, avx512_vnni, avx512bw, avx512f, avx_vnni, f16c, fma
 
 ## Memory
-- Total: 15.7 GiB; available: 15.2 GiB
+- Total: 15.7 GiB; available: 15.1 GiB
 - Swap: none
 - Speed: not_measured
 
@@ -38,24 +38,24 @@
 
 | Encoder | OK | Encode fps | Decode fps | Note |
 |---|---|---|---|---|
-| libx264 | yes | 54.6 | 353.4 |  |
-| h264_nvenc | no | - | - | [h264_nvenc @ 0x56446baddbc0] Cannot load libcuda.so.1 |
-| hevc_nvenc | no | - | - | [hevc_nvenc @ 0x55974a08fbc0] Cannot load libcuda.so.1 |
-| av1_nvenc | no | - | - | [av1_nvenc @ 0x561bd92b5bc0] Cannot load libcuda.so.1 |
-| h264_qsv | no | - | - | [h264_qsv @ 0x55a4cf21dbc0] Error creating a MFX session: -9. |
-| hevc_qsv | no | - | - | [hevc_qsv @ 0x55ad99aa9bc0] Error creating a MFX session: -9. |
-| av1_qsv | no | - | - | [av1_qsv @ 0x56068bc63bc0] Error creating a MFX session: -9. |
+| libx264 | yes | 50.2 | 348.1 |  |
+| h264_nvenc | no | - | - | [h264_nvenc @ 0x55dede6d9bc0] Cannot load libcuda.so.1 |
+| hevc_nvenc | no | - | - | [hevc_nvenc @ 0x56495d33dbc0] Cannot load libcuda.so.1 |
+| av1_nvenc | no | - | - | [av1_nvenc @ 0x558abd7b8bc0] Cannot load libcuda.so.1 |
+| h264_qsv | no | - | - | [h264_qsv @ 0x563a421b7bc0] Error creating a MFX session: -9. |
+| hevc_qsv | no | - | - | [hevc_qsv @ 0x5646c7246bc0] Error creating a MFX session: -9. |
+| av1_qsv | no | - | - | [av1_qsv @ 0x563339f6cbc0] Error creating a MFX session: -9. |
 | h264_vaapi | no | - | - | no DRI render node |
 | hevc_vaapi | no | - | - | no DRI render node |
 | av1_vaapi | no | - | - | no DRI render node |
-| h264_v4l2m2m | no | - | - | [h264_v4l2m2m @ 0x5648fe14cbc0] Could not find a valid device |
+| h264_v4l2m2m | no | - | - | [h264_v4l2m2m @ 0x5618bace5bc0] Could not find a valid device |
 
 - Hardware encoders compiled in: h264_nvenc, hevc_nvenc, av1_nvenc, h264_qsv, hevc_qsv, av1_qsv, h264_vaapi, hevc_vaapi, av1_vaapi, h264_v4l2m2m
 - Hardware encoders that actually worked: none
 
 ## Storage
-- /root: 60.0 GiB free of 252.0 GiB
-- Sequential write (256 MiB, fsync): 920.4 MiB/s; read: 7294.6 MiB/s (likely cached)
+- /root: 58.2 GiB free of 252.0 GiB
+- Sequential write (256 MiB, fsync): 879.4 MiB/s; read: 7212.4 MiB/s (likely cached)
 - Media type: not_determined_by_script (SSD/HDD/network: confirm manually)
 
 ## Network

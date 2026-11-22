@@ -7,7 +7,7 @@ them against the live docs and updates this file.
 
 ---
 
-## B-01 Operator machine not inspected
+## B-01 Operator machine not inspected (partial run 2026-11-22, see E-040)
 - **Blocks:** hardware-dependent decisions (spec 5.6 #4, #5, #7, #9, #12,
   concurrency), Gate G0 hardware criterion, DoD item 1.
 - **Why:** this session runs in a cloud container. No operator computer is attached.
@@ -28,6 +28,21 @@ them against the live docs and updates this file.
 - **Confirmation:** `clipops health` shows `hardware:operator-machine-inspected: ok`.
 - **Then automatically:** run the Phase 1 benchmarks (ASR, scene detection,
   encoders) on that machine and record decisions.
+
+## B-08 Operator Mac toolchain and disk space
+- **Found by:** the first run of the inspection on the operator's Mac mini (E-040).
+- **Blocks:** any pipeline run on that machine; encoder tests in the hardware report.
+- **Missing:** FFmpeg (no Homebrew to install it); Python ≥ 3.11 (system has
+  3.9.6); disk space (6.7 GB free, while media work needs tens of GB).
+- **Steps:**
+  1. Install Homebrew (official command from brew.sh; asks for your Mac password):
+     `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+  2. `brew install ffmpeg uv`
+  3. `uv python install 3.12` (used later by `uv sync`)
+  4. Free disk space or attach an external SSD for `data/`.
+- **Confirmation:** the re-run report shows FFmpeg present, encoder tests run,
+  no "older than the project's minimum" line, and free space above 50 GiB on
+  the volume used for `data/`.
 
 ## B-02 No authorised source footage
 - **Blocks:** real ingestion, the evaluation corpus (Gate G1), every quality claim.

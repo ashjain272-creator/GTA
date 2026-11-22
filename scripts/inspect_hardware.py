@@ -371,7 +371,8 @@ def inspect_network(skip: bool) -> dict:
     url = "https://speed.cloudflare.com/__down?bytes=25000000"
     try:
         t0 = time.perf_counter()
-        with urllib.request.urlopen(url, timeout=30) as r:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (clipops hardware inspection)"})
+        with urllib.request.urlopen(req, timeout=30) as r:
             n = len(r.read())
         dt = time.perf_counter() - t0
         return {"measured": True, "download_mbit_s": round(n * 8 / dt / 1e6, 1),
@@ -514,20 +515,45 @@ def render_markdown(hw: dict) -> str:
 
 def implications(hw: dict) -> list[str]:
     out = []
+    o, f = hw["os"], hw["ffmpeg"]
     has_cuda = any(d.get("vendor") == "NVIDIA" for d in hw["gpu"]["devices"])
+    apple_silicon = o["system"] == "Darwin" and o["machine"] == "arm64"
     mem = hw["memory"].get("total_bytes") or 0
     cores = hw["cpu"].get("logical_cores") or 1
-    hw_ok = [t["encoder"] for t in hw["ffmpeg"].get("encode_tests", [])
-             if t["ok"] and t["encoder"] in HW_ENCODERS]
     if has_cuda:
         out.append("- CUDA GPU present: GPU speech recognition and local vision models are candidates; benchmark in Phase 1.")
+    elif apple_silicon:
+        out.append("- Apple Silicon (unified memory, Metal GPU, Neural Engine): candidates are whisper.cpp with Metal, "
+                   "MLX-based Whisper and CTranslate2 on CPU; benchmark all three in Phase 1. "
+                   "Small local vision models via Metal may be feasible on sampled frames.")
     else:
-        out.append("- No CUDA GPU: speech recognition runs on CPU (CTranslate2/int8 or whisper.cpp class runtimes); local vision-language models are likely too slow for dense use, so sample sparsely or use pre-screening.")
-    if not hw_ok:
-        out.append("- No working hardware encoder: drafts and finals both use software encoders; size render concurrency to cores.")
+        out.append("- No CUDA GPU: speech recognition runs on CPU (CTranslate2/int8 or whisper.cpp class runtimes); "
+                   "local vision-language models are likely too slow for dense use, so sample sparsely or use pre-screening.")
+    if not f.get("present"):
+        out.append("- FFmpeg NOT INSTALLED: encoders could not be tested and the pipeline cannot run. "
+                   "Install FFmpeg (e.g. `brew install ffmpeg` on macOS), then re-run this script.")
     else:
-        out.append(f"- Working hardware encoder(s) {', '.join(hw_ok)}: candidates for draft renders; finals compared by VMAF/SSIM before choosing.")
-    out.append(f"- Concurrency starting point: at most {max(1, cores // 2)} heavy media job(s) at once on {cores} logical cores (to be tuned by measurement).")
+        hw_ok = [t["encoder"] for t in f.get("encode_tests", []) if t["ok"] and t["encoder"] in HW_ENCODERS]
+        if hw_ok:
+            out.append(f"- Working hardware encoder(s) {', '.join(hw_ok)}: candidates for draft renders; "
+                       "finals compared by VMAF/SSIM before choosing.")
+        else:
+            out.append("- No working hardware encoder: drafts and finals both use software encoders; size render concurrency to cores.")
+    py = hw["software"].get("python") or ""
+    try:
+        major, minor = (int(x) for x in py.split()[1].split(".")[:2])
+        if (major, minor) < (3, 11):
+            out.append(f"- {py} is older than the project's minimum (3.11): install a newer Python "
+                       "(e.g. `uv python install 3.12`) before running clipops.")
+    except (IndexError, ValueError):
+        out.append("- Python version could not be determined.")
+    vols = hw["storage"]["volumes"]
+    free_min = min((v["free_bytes"] for v in vols), default=0)
+    if free_min and free_min < 50 * (1 << 30):
+        out.append(f"- Low free disk space ({free_min / (1 << 30):.1f} GiB on the smallest checked volume): "
+                   "long recordings and intermediates need tens of GiB; free space or add external storage.")
+    out.append(f"- Concurrency starting point: at most {max(1, cores // 2)} heavy media job(s) at once on {cores} logical cores "
+               "(to be tuned by measurement).")
     if mem and mem < 12 * (1 << 30):
         out.append("- RAM below 12 GiB: avoid running ASR and render concurrently; prefer small/medium speech models.")
     return out

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-21T21:06:21+00:00",
+  "generated_at": "2026-11-22T13:51:29+00:00",
   "role": "cloud-dev-container",
   "os": {
     "system": "Linux",
@@ -31,7 +31,7 @@
   },
   "memory": {
     "total_bytes": 16869113856,
-    "available_bytes": 16313872384,
+    "available_bytes": 16230977536,
     "swap_total_bytes": 0,
     "speed": "not_measured"
   },
@@ -182,47 +182,47 @@
       {
         "encoder": "libx264",
         "ok": true,
-        "encode_seconds_for_150_frames": 2.748,
-        "encode_fps": 54.6,
+        "encode_seconds_for_150_frames": 2.986,
+        "encode_fps": 50.2,
         "output_bytes": 5074327,
         "decode_ok": true,
-        "decode_fps": 353.4
+        "decode_fps": 348.1
       },
       {
         "encoder": "h264_nvenc",
         "ok": false,
-        "encode_seconds_for_150_frames": 0.049,
-        "error": "[h264_nvenc @ 0x56446baddbc0] Cannot load libcuda.so.1"
+        "encode_seconds_for_150_frames": 0.052,
+        "error": "[h264_nvenc @ 0x55dede6d9bc0] Cannot load libcuda.so.1"
       },
       {
         "encoder": "hevc_nvenc",
         "ok": false,
-        "encode_seconds_for_150_frames": 0.053,
-        "error": "[hevc_nvenc @ 0x55974a08fbc0] Cannot load libcuda.so.1"
+        "encode_seconds_for_150_frames": 0.052,
+        "error": "[hevc_nvenc @ 0x56495d33dbc0] Cannot load libcuda.so.1"
       },
       {
         "encoder": "av1_nvenc",
         "ok": false,
-        "encode_seconds_for_150_frames": 0.04,
-        "error": "[av1_nvenc @ 0x561bd92b5bc0] Cannot load libcuda.so.1"
+        "encode_seconds_for_150_frames": 0.052,
+        "error": "[av1_nvenc @ 0x558abd7b8bc0] Cannot load libcuda.so.1"
       },
       {
         "encoder": "h264_qsv",
         "ok": false,
-        "encode_seconds_for_150_frames": 0.05,
-        "error": "[h264_qsv @ 0x55a4cf21dbc0] Error creating a MFX session: -9."
+        "encode_seconds_for_150_frames": 0.057,
+        "error": "[h264_qsv @ 0x563a421b7bc0] Error creating a MFX session: -9."
       },
       {
         "encoder": "hevc_qsv",
         "ok": false,
-        "encode_seconds_for_150_frames": 0.051,
-        "error": "[hevc_qsv @ 0x55ad99aa9bc0] Error creating a MFX session: -9."
+        "encode_seconds_for_150_frames": 0.068,
+        "error": "[hevc_qsv @ 0x5646c7246bc0] Error creating a MFX session: -9."
       },
       {
         "encoder": "av1_qsv",
         "ok": false,
-        "encode_seconds_for_150_frames": 0.051,
-        "error": "[av1_qsv @ 0x56068bc63bc0] Error creating a MFX session: -9."
+        "encode_seconds_for_150_frames": 0.053,
+        "error": "[av1_qsv @ 0x563339f6cbc0] Error creating a MFX session: -9."
       },
       {
         "encoder": "h264_vaapi",
@@ -242,8 +242,8 @@
       {
         "encoder": "h264_v4l2m2m",
         "ok": false,
-        "encode_seconds_for_150_frames": 0.04,
-        "error": "[h264_v4l2m2m @ 0x5648fe14cbc0] Could not find a valid device"
+        "encode_seconds_for_150_frames": 0.052,
+        "error": "[h264_v4l2m2m @ 0x5618bace5bc0] Could not find a valid device"
       }
     ]
   },
@@ -252,13 +252,13 @@
       {
         "path": "/root",
         "total_bytes": 270553174016,
-        "free_bytes": 64422273024
+        "free_bytes": 62451277824
       }
     ],
     "repo_volume_benchmark": {
       "size_mib": 256,
-      "seq_write_mib_s": 920.4,
-      "seq_read_mib_s_page_cache_likely": 7294.6,
+      "seq_write_mib_s": 879.4,
+      "seq_read_mib_s_page_cache_likely": 7212.4,
       "note": "read figure is optimistic: file was just written and is likely cached"
     },
     "media_type": "not_determined_by_script (SSD/HDD/network: confirm manually)"
