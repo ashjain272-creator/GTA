@@ -88,3 +88,42 @@ Append-only. CHECKPOINT entries are safe resumption points.
   docs/ROADMAP.md.
 - **Hazards:** HF model downloads need the "GTA" environment. Sessions on the
   Default environment will fail ASR.
+
+---
+
+## 2026-11-22: Platform verification (P1-01), class E path, lockfile  [RESEARCH, GROWTH, SEC, ARCH]
+- With operator approval, the "GTA" environment gained six documentation hosts
+  (ADR-0008 scope extended). Read at source: YouTube Data API quota, insert,
+  audit and revision history; TikTok getting-started, sharing guidelines,
+  upload, media transfer and scopes; Instagram content publishing and limits;
+  Twitch clips reference.
+- Results (E-020-E-028, docs/PLATFORM_LIMITS.md):
+  - YouTube: 100 uploads/day at 1 unit each in a separate bucket; no audit
+    needed; unverified projects **no longer** forced private (2026-11-02), so
+    uploads default to public. New risk R33, rule: always send privacyStatus.
+    Paid-placement flag no longer defaults (2026-11-16).
+  - TikTok: Direct Post intended-use rules exclude own-account tools (E-024),
+    so the plan is inbox/draft upload (`video.upload`). Watermarks and logos
+    are forbidden on shared content (E-025).
+  - Instagram: local-file resumable upload with Facebook Login for Business
+    (AM-08 resolved); limit 100/24 h on the newer page vs 50 on a 2024 page.
+  - Twitch: clip download only for the broadcaster and their editors.
+- ADR-0009 sets the publishing route per platform. AM-25, AM-26 added.
+- Still unread: Twitch ToS (legal.twitch.com not allowed), Rockstar policy
+  (empty reply), YouTube Shorts criteria, IG Reels specs (E-029).
+- P0-13: `clipops source classify <url>` classifies without any network
+  access and drafts a permission request (spec 4.15 test 1).
+- P0-15: uv.lock. CI now installs from the lockfile. 41 tests pass in the
+  locked environment.
+
+### CHECKPOINT 2026-11-22-a
+- **Phase:** 0/1 overlap. G0 still blocked only by B-01. P1-01 mostly done.
+- **Verified:** `.venv/bin/pytest -q`: 41 passed (locked env). Smoke passes.
+- **Half-finished:** P1-01 pending items above.
+- **Exact next step:** P1-02 reused-content policy wording (YouTube Help,
+  TikTok and Instagram community guidelines: hosts not yet allowed), or,
+  without network, P1-04 licence matrix from installed package metadata, plus
+  P0-16 (measure rendered caption bounds). The YouTube adapter (Phase 7) can be
+  designed now against PLATFORM_LIMITS, but must not be built as a stub.
+- **Hazards:** YouTube's public default (R33). The fetch tool has its own host
+  allowlist, separate from the environment, so use curl for docs.

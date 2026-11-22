@@ -63,7 +63,7 @@ the file directly under the licence (e.g. Wikimedia Commons, Internet Archive),
 or through a platform's own download feature. VERIFY the YouTube Terms
 download clause in Phase 1.
 
-**AM-08 · CONTRADICTION (local-first) · 11.3 Instagram.** The Instagram
+**AM-08 · RESOLVED 2026-11-22 (E-027): resumable local upload with Facebook Login for Business.** · CONTRADICTION (local-first) · 11.3 Instagram. The Instagram
 container flow historically fetches media from a public URL, which conflicts
 with local-first and adds hosting cost and exposure. Resolution: Phase 1 checks
 whether the resumable-upload flow (E-005) avoids public hosting. If it does
@@ -139,6 +139,18 @@ material under licence.
 style uses TTS or AI voice, platform AI-content disclosure flags apply. Add to
 the publish gate disclosure step.
 
+**AM-25 · CONTRADICTION (spec vs platform rule) · 11.3, 11.6 TikTok.** The spec
+assumes automated publishing through each platform's official API. TikTok's
+Direct Post intended-use rules exclude tools for one's own accounts (E-024).
+Resolution (ADR-0009): use inbox/draft upload, with a human finishing each post
+in the app. This is permitted by the platform, keeps a human in the loop, and is
+a narrower capability than the spec envisaged.
+
+**AM-26 · CLARIFICATION · 11.4, 8.x.** TikTok forbids integrations from adding
+logos, watermarks or promotional text to shared content (E-025). Styles must not
+burn channel branding into TikTok renders. Per-platform render variants are
+required (spec 8.9 already allows this).
+
 ## 6. Document-level
 
 **AM-23 · CLARIFICATION · X1.** The spec (~394 KB as Markdown) cannot be held in
@@ -155,10 +167,10 @@ The status of each group. Detail goes in EVIDENCE.md as items are checked.
 
 | Group | Spec refs | Phase 0 status |
 |---|---|---|
-| YouTube Data API quotas, audit, private-upload restriction, Shorts criteria | 3.5, 11.3, 18.2 X3 | Searched; **official pages conflict** (E-001-E-003). Full read due in Phase 1 |
-| TikTok Content Posting API audit and private restriction | 3.5, 11.3 | Searched; consistent (E-004). Full read due |
-| Instagram publishing requirements and limits | 3.5, 11.3 | Searched; limit conflicts (E-005). Full read due |
-| Twitch clips/VOD access and reuse terms | 3.5, 4.4, 11.3 | Searched; reuse terms not found (E-006). Full read of ToS and Developer Agreement due |
+| YouTube Data API quotas, audit, private-upload restriction | 3.5, 11.3, 18.2 X3 | **VERIFIED 2026-11-22** (E-020-E-022). The spec's X3 note is now out of date: the private restriction was reversed on 2026-11-02. Shorts criteria still PENDING |
+| TikTok Content Posting API audit and private restriction | 3.5, 11.3 | **VERIFIED** (E-023-E-025); new constraint AM-25 |
+| Instagram publishing requirements and limits | 3.5, 11.3 | **VERIFIED** (E-026, E-027); Reels media specs PENDING |
+| Twitch clips/VOD access and reuse terms | 3.5, 4.4, 11.3 | Clip download **VERIFIED** (E-028); ToS/clip ownership PENDING (host blocked, E-029) |
 | Platform reused-content / transformation wording | 4.7 | Pending |
 | Photosensitive-seizure guideline thresholds | 4.9 | Pending |
 | AI/sponsored disclosure labels | 4.10 | Pending |

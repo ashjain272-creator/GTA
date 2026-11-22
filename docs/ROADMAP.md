@@ -27,14 +27,15 @@ G0 is **not passed** until B-01 clears. Hardware-independent Phase 1 work may
 proceed in parallel (17.17: "do not stall the whole project").
 
 ### Skeleton follow-ups (found by running it)
-- P0-13 `source classify <url>`: class E path producing a permission-request draft, with no download (spec 4.15 acceptance test 1).
+- P0-13 ✅ `source classify <url>`: class E path producing a permission-request draft, with no download (spec 4.15 acceptance test 1).
 - P0-14 Asset registry check: rendering blocked when an unregistered asset is used (spec 4.15 test 3). Not reachable yet because no assets are used.
-- P0-15 Lockfile (uv) pinning faster-whisper, ctranslate2 and numpy (R31).
+- P0-15 ✅ Lockfile (uv.lock; 41 tests pass in the locked env) pinning faster-whisper, ctranslate2 and numpy (R31).
 - P0-16 Measure rendered caption bounds against the safe area (QA currently checks configuration only).
 
 ## Phase 1: Research and decisions (est. 4-6 sessions)
-- P1-01 Full read of platform docs; promote E-001-E-006 to VERIFIED; write
-  PLATFORM_LIMITS.md truth tables; correct BLOCKERS steps.
+- P1-01 ◐ Platform docs read at source (YouTube, TikTok, Instagram, Twitch
+  API) → PLATFORM_LIMITS.md, E-020-E-028, ADR-0009. Pending: YouTube Shorts
+  criteria, IG Reels specs, Twitch ToS, Rockstar page (hosts unreachable, E-029).
 - P1-02 Reused-content policy wording per platform (4.7).
 - P1-03 Game policy registry v1: Rockstar first; draft Take-Two licence request (B-06).
 - P1-04 Licence matrix for candidate models and tools (R17).

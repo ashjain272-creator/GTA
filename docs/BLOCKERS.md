@@ -38,9 +38,9 @@ them against the live docs and updates this file.
 
 ## B-03 YouTube API access
 - **Blocks:** L1 private uploads and analytics for YouTube.
-- **Lead time:** quota extension and compliance audit run to weeks
-  (E-001). Whether unaudited uploads are forced private is **unresolved**
-  (E-003).
+- **Lead time:** short. **No audit is needed** for our volume: the default is
+  100 uploads/day, and unverified projects are no longer forced to private
+  (E-020, E-021, verified 2026-11-22).
 - **Steps (account-holder; adult where Google requires):**
   1. Google Cloud console → create project → enable *YouTube Data API v3* (and
      *YouTube Analytics API* for metrics).
@@ -49,23 +49,23 @@ them against the live docs and updates this file.
   3. Create OAuth client ID of type **Desktop app**. Download the JSON to a
      location **outside** the repo, and set `CLIPOPS_YOUTUBE_CLIENT_SECRETS_FILE`
      to its path.
-  4. Do **not** apply for the audit yet. Phase 1 drafts the application text and
-     the privacy-policy and terms pages it requires.
+  4. No audit application is needed unless volume ever exceeds 100 uploads/day.
 - **Confirmation:** `python scripts/check_credentials.py` shows
   `present_file_exists`.
 - **Then automatically:** an OAuth consent flow in your browser (Claude never
   sees your password), then a private test upload in Phase 7.
 
 ## B-04 TikTok Content Posting API
-- **Blocks:** TikTok L1. Unaudited clients post **private only**, for at most 5
-  users per 24 h (E-004).
-- **Steps:** create a TikTok for Developers account → create an app → add the
-  *Content Posting API* product and *Login Kit* → request `video.publish` (or
-  `video.upload` for inbox drafts) → note the client key and secret into
-  env vars `CLIPOPS_TIKTOK_CLIENT_KEY` / `_SECRET` (not into the repo).
-  The audit submission waits until a working integration and demo video exist
-  (Phase 7).
-- **Then automatically:** private-post integration tests.
+- **Blocks:** TikTok L1 (draft to inbox).
+- **Finding (E-024):** TikTok's Direct Post rules exclude "a utility tool to
+  help upload contents to the account(s) you or your team manages", so Direct
+  Post audit approval is unlikely. Plan: **inbox upload** (`video.upload`). You
+  finish each post in the TikTok app (ADR-0009).
+- **Steps:** create a TikTok for Developers account → create an app → add
+  *Login Kit* and the *Content Posting API* product → request **`video.upload`**
+  only → set env vars `CLIPOPS_TIKTOK_CLIENT_KEY` / `_SECRET` outside the repo.
+- **If refused:** TikTok stays at L0. The system prepares a ready-to-post file
+  plus caption, and you upload it manually in about a minute.
 
 ## B-05 Instagram (Meta) publishing
 - **Blocks:** Reels L1.
@@ -76,7 +76,8 @@ them against the live docs and updates this file.
   request `instagram_content_publish` (plus basic permissions) → app review
   needs a hosted privacy policy URL and a screencast (drafted in Phase 7).
   Note the app ID and secret into env vars.
-- **Open design issue:** media hosting for the container flow (AMENDMENTS AM-08).
+- **Use the Facebook Login for Business variant.** It allows uploading local
+  files without public hosting (E-027), but requires a Facebook Page linked to the account.
 
 ## B-06 Rockstar / Take-Two licence for monetised GTA content
 - **Blocks:** any monetisation of GTA footage (AM-05, R25).
@@ -89,7 +90,7 @@ them against the live docs and updates this file.
   per short.
 
 ## B-07 Hosted policy pages for app reviews
-- **Blocks:** B-03 audit, B-04 audit, B-05 review.
+- **Blocks:** B-04 scope review and B-05 app review (YouTube needs neither at our volume, E-020).
 - **Steps:** the operator chooses where to host two static pages (privacy policy,
   terms). Phase 1 drafts both. Hosting is free on many static hosts. Choosing
   one is the operator's decision.

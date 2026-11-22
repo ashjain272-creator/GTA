@@ -23,8 +23,11 @@ and what it unblocks. Engineering continues on everything else meanwhile.
    or 12 with the thermal test.
 2. **Declare footage and rights** (B-02, Q1).
 3. **Create the Google Cloud project and Desktop OAuth client** (B-03 steps 1-3).
-   It has the longest lead time, so start early.
-4. **Create the TikTok developer app** (B-04).
-5. **Make the Instagram account Business or Creator, and create the Meta app** (B-05).
+   No audit is needed (verified 2026-11-22). This is the first integration target.
+4. **Create the TikTok developer app and request only `video.upload`** (B-04).
+   You will finish each post in the TikTok app. TikTok's rules exclude
+   automated direct posting from personal tools.
+5. **Make the Instagram account Business or Creator, link a Facebook Page, and
+   create the Meta app** (B-05).
 6. **Decide on GTA monetisation** (B-06).
 7. **Choose static hosting for the policy pages** (B-07). Not needed until Phase 7.

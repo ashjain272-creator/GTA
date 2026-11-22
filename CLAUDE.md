@@ -9,7 +9,7 @@ Approved deviations are in `docs/AMENDMENTS.md`.
 1. Read `docs/PROGRESS.md` (latest CHECKPOINT first), open items in
    `docs/RISKS.md`, and the last 20 entries of `docs/DECISIONS.md`.
 2. State the current phase and next gate in 2-3 sentences.
-3. Run `pip install -e ".[dev,asr]"` if needed (plus `apt-get install espeak-ng`
+3. Run `uv sync --extra dev --extra asr` (locked; or `pip install -e ".[dev,asr]"`) if needed (plus `apt-get install espeak-ng`
    for the demo fixture), then `pytest -m smoke -q` and `clipops health`. If the
    repo is not green, fixing that comes first. Full suite: `pytest -q` (~40 s).
 
@@ -57,7 +57,7 @@ lawful alternative instead.
 ## Repository map
 - `docs/`: spec, ledgers (DECISIONS, EVIDENCE, RISKS, ASSUMPTIONS, PROGRESS),
   AMENDMENTS, HARDWARE_REPORT, KNOWLEDGE_MAP, DISCOVERY, BLOCKERS,
-  OPERATOR_TODO, ROADMAP
+  OPERATOR_TODO, ROADMAP, PLATFORM_LIMITS (truth tables: read before any adapter work)
 - `config/`: hardware.json, credentials_presence.json, settings.example.yaml, platforms/
 - `src/clipops/`: package; stage subpackages per spec 2.4
 - `scripts/`: inspect_hardware.py, check_credentials.py (stdlib only), make_synthetic_fixture.py

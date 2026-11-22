@@ -62,6 +62,9 @@ def main(argv: list[str] | None = None) -> int:
     sa.add_argument("--game")
     sa.add_argument("--notes")
 
+    sc = src.add_parser("classify", help="classify a URL; never downloads (class E path, spec 4.4)")
+    sc.add_argument("url")
+
     for group, verb in (("ingest", "run"), ("analyse", "run"), ("candidates", "generate")):
         g = sub.add_parser(group).add_subparsers(dest="sub", required=True)
         g.add_parser(verb).add_argument("source_id")
@@ -86,6 +89,15 @@ def main(argv: list[str] | None = None) -> int:
         return health.main(as_json=args.json)
 
     cfg = config.load()
+    if args.cmd == "source" and args.sub == "classify":
+        from .ingest.classify import class_e_outcome
+        out = class_e_outcome(args.url)
+        stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        path = write_json(Path(cfg["_repo"]) / "data" / "reports" / f"classify_{stamp}.json", out)
+        print(json.dumps(out["classification"], indent=2))
+        print("\n" + out["limitation"] + "\n\n--- permission request draft ---\n" + out["permission_request_draft"])
+        print(f"record: {path}", file=sys.stderr)
+        return 0
     if args.cmd == "source":
         grant = json.loads(Path(args.grant).read_text()) if args.grant else None
         return _run(cfg, "source add", lambda p, r: {"source_id": p.add_source(

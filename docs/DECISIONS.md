@@ -93,3 +93,27 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
   Hugging Face hosts only (huggingface.co, its LFS/Xet CDN hosts and
   us.aws.cdn.hf.co). Package registries were already allowed.
 - **Consequence:** CI and the operator machine download models from the same hosts.
+
+## ADR-0009 Publishing route per platform  [GROWTH, RIGHTS]
+- **Date:** 2026-11-22 · **Status:** Accepted. Supersedes the platform assumptions in ADR-0005's context (L0 default unchanged).
+- **Evidence:** E-020-E-028 (VERIFIED, PLATFORM_LIMITS.md).
+- **YouTube (first integration target):** `videos.insert` with OAuth. No audit
+  needed at our volume (100 uploads/day default). The unverified-project
+  private restriction is gone, so **the adapter must always send
+  `privacyStatus` explicitly** (`private` at L1) and must set
+  `hasPaidProductPlacement`, `selfDeclaredMadeForKids` and
+  `containsSyntheticMedia`. Never rely on defaults.
+- **TikTok:** Direct Post's intended-use rules exclude tools for one's own
+  accounts (E-024), so no Direct Post audit application is planned. The target
+  is the **inbox/draft upload** (`video.upload`): the operator finishes each
+  post in the TikTok app, which also satisfies L1/L2 human release. If scope
+  approval is refused, TikTok stays at L0 (ready-to-post bundle).
+- **Instagram:** Facebook Login for Business variant, so that resumable upload
+  of local files avoids public hosting (E-027). This requires a Business or
+  Creator account linked to a Page.
+- **Twitch:** source only. Clip files only for the operator's own channel or
+  channels where the operator is an editor with written creator permission
+  (classes A/B).
+- **Packaging consequence:** no channel watermark or logo burned into videos
+  destined for TikTok (E-025). The render needs per-platform overlays.
+- **Revisit if:** TikTok publishes a personal-creator route or app review rejects `video.upload`.
