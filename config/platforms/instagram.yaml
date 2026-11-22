@@ -1,0 +1,16 @@
+platform: instagram
+export:
+  max_duration_s: 60            # policy choice; Reels allow 3 s-15 min (ig-user/media, updated 2026-09-28)
+  aspect: "9:16"
+  video_codec: libx264          # HEVC or H264, closed GOP, 4:2:0
+  audio_codec: aac
+  audio_bitrate: 128k           # Reels spec: 128 kbps audio
+  use_editlist: false           # Reels spec: "no edit lists, moov atom at the front"
+  max_video_bitrate: 25M        # Reels spec: VBR 25 Mbps max
+packaging:
+  title_max_chars: 0            # Reels have captions, not titles
+  description_max_chars: 2200   # HYPOTHESIS: VERIFY
+  hashtags: []
+  watermark_allowed: true       # HYPOTHESIS: Instagram originality guidance not yet read (PENDING)
+  required_flags:
+    share_to_feed: true

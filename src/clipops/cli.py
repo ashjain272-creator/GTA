@@ -80,6 +80,11 @@ def main(argv: list[str] | None = None) -> int:
     qa = sub.add_parser("qa").add_subparsers(dest="sub", required=True)
     qa.add_parser("run").add_argument("short_id")
 
+    pk = sub.add_parser("package").add_subparsers(dest="sub", required=True)
+    pkm = pk.add_parser("make", help="L0 ready-to-post bundle with publish-gate verdict (never posts)")
+    pkm.add_argument("short_id")
+    pkm.add_argument("--platform", required=True, choices=["youtube", "tiktok", "instagram"])
+
     dm = sub.add_parser("demo").add_subparsers(dest="sub", required=True)
     dr = dm.add_parser("run", help="walking-skeleton demonstration on a synthetic fixture")
     dr.add_argument("--out", default=None, help="directory for the recorded demo output")
@@ -136,6 +141,22 @@ def main(argv: list[str] | None = None) -> int:
                                     "failed": res["failed"], "review_flags": res["review_flags"], "publishable": res["publishable"]}
             return res
         return _run(cfg, "qa", rerun_qa)
+    if args.cmd == "package":
+        info_path = _find(cfg, f"*/renders/{args.short_id}.json")
+        info = read_json(info_path)
+        src_dir = info_path.parent.parent
+        plan = read_json(_find(cfg, f"*/plans/{info['plan_id']}.json"))
+        qa = read_json(src_dir / "qa" / f"{args.short_id}.json")
+
+        def pack(p, r):
+            from .packaging.bundle import make_bundle
+            with r.stage("package"):
+                meta = make_bundle(cfg, src_dir, plan, info, qa, args.platform, config.data_path(cfg, "published"))
+            if not meta["ready"]:
+                r.operator_action(f"{args.short_id}/{args.platform} not ready: {meta['verdict']['blocking']}")
+            return {"ready": meta["ready"], "blocking": meta["verdict"]["blocking"],
+                    "bundle": str(config.data_path(cfg, "published") / args.short_id / args.platform)}
+        return _run(cfg, "package", pack)
     if args.cmd == "demo":
         from .demo import run_demo
         return run_demo(cfg, Path(args.out) if args.out else None)

@@ -1,0 +1,19 @@
+# YouTube Shorts export + packaging profile. Facts cite docs/PLATFORM_LIMITS.md.
+platform: youtube
+export:
+  max_duration_s: 60            # policy choice <= 60 (AM-28); platform allows 180 (E-031)
+  aspect: "9:16"
+  video_codec: libx264
+  audio_codec: aac
+  audio_bitrate: 192k
+  use_editlist: true
+packaging:
+  title_max_chars: 100          # HYPOTHESIS: VERIFY against videos.insert snippet.title limits
+  description_max_chars: 5000   # HYPOTHESIS: VERIFY
+  hashtags: ["#Shorts"]         # starting point only; effect unmeasured (spec 18.2 S2)
+  watermark_allowed: true
+  required_flags:               # adapter must send every one explicitly (E-021, E-022)
+    privacyStatus: private      # L1 default; never rely on the public default (R33)
+    selfDeclaredMadeForKids: false
+    hasPaidProductPlacement: false
+    containsSyntheticMedia: false

@@ -164,3 +164,23 @@ Append-only. CHECKPOINT entries are safe resumption points.
   now allowed).
 - **Hazards:** the Rockstar page is still unreadable here. A fresh container
   depends on the new setup script.
+
+## 2026-11-22: L0 bundles and offline gate (P0-20)  [GROWTH, QA]
+- Instagram Reels spec read at source (E-038). Per-platform export profiles.
+  The Instagram export drops edit lists and re-encodes audio at 128 kb/s
+  (verified E-039).
+- `clipops package make` builds bundles with draft text, flags, posting steps
+  and the gate verdict. The demo short is correctly blocked
+  (human_review, creative_review, contribution_test). A test proves the gate
+  passes when every requirement is satisfied.
+
+### CHECKPOINT 2026-11-22-c
+- **Phase:** 0/1. G0 blocked only by B-01.
+- **Verified:** full suite passes (see commit message).
+- **Exact next step:** the contribution layer, which is the biggest gap
+  between skeleton and publishable output. Spec 4.7 lists contribution
+  types. The most automatable is narrative restructuring with context
+  captions (hook text, setup card), designed with the style engine (Phase 5,
+  Appendix B). Also: mute/duck for music windows; ranker using audio-event
+  signals.
+- **Hazards:** unchanged (Rockstar page unread; setup script unproven until a fresh container).

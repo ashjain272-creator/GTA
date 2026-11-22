@@ -124,7 +124,9 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
         code="contact_sheet_failed")
 
     passed = all(c["passed"] for c in checks if c["severity"] == "blocking")
-    return {"short_id": render_info["short_id"], "path": str(path), "passed": passed,
+    from ..storage.artefacts import sha256_file
+    return {"short_id": render_info["short_id"], "path": str(path), "render_sha256": sha256_file(path),
+            "passed": passed,
             "failed": [c["name"] for c in checks if not c["passed"] and c["severity"] == "blocking"],
             "review_flags": [c["name"] for c in checks if not c["passed"] and c["severity"] == "review"],
             "checks": checks,

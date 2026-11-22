@@ -1,0 +1,16 @@
+platform: tiktok
+export:
+  max_duration_s: 60            # policy choice; API allows up to 10 min (E-023 media guide)
+  aspect: "9:16"
+  video_codec: libx264          # H.264 recommended (media-transfer-guide)
+  audio_codec: aac
+  audio_bitrate: 192k
+  use_editlist: true
+packaging:
+  title_max_chars: 150          # HYPOTHESIS: VERIFY
+  description_max_chars: 2200   # HYPOTHESIS: VERIFY
+  hashtags: []
+  watermark_allowed: false      # E-025: no logos/watermarks/promotional text on shared content
+  required_flags:
+    privacy_level: "operator selects in app (no default allowed)"
+    commercial_content_disclosure: "operator selects in app"

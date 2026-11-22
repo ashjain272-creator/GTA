@@ -48,7 +48,8 @@ Last full pass: 2026-11-22.
 | Local file without public hosting? | **Yes, with Facebook Login for Business only**: `upload_type=resumable`, then POST the local file to `rupload.facebook.com/ig-api-upload/...`. Otherwise "media must be hosted on a publicly accessible server". | VERIFIED (E-027) | content-publishing. Resolves AMENDMENTS AM-08 |
 | Rate limit | **100 API-published posts per 24 h moving window** (content-publishing, updated 2026-10-20). The older `content_publishing_limit` reference (updated 2024-07-23) still says `quota_total` 50. Use the newer page, and query `GET /<IG_ID>/content_publishing_limit` at runtime instead of hardcoding (R30). | VERIFIED (conflict noted) | both pages |
 | App review | Needed for the publish permissions. A hosted privacy-policy URL is required. | SECONDARY | E-005 |
-| Reels media specifications | Not extracted in this pass | PENDING | — |
+| Reels media specifications | MP4/MOV, **no edit lists**, moov first; AAC 128 kbps ≤48 kHz; H.264/HEVC closed GOP 4:2:0; 23-60 fps; ≤1920 columns; ≤25 Mbps VBR; 3 s-15 min; ≤300 MB | VERIFIED (E-038) | ig-user/media (updated 2026-09-28) |
+| Originality / recommendation guidance | Help page is JavaScript-rendered; text not readable from here | PENDING | help.instagram.com |
 | What a human must do | Convert to a professional account, link a Page (variant 1), create the Meta app, pass app review, authorise in the browser | — | BLOCKERS B-05 |
 
 ## Twitch (source platform)

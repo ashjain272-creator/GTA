@@ -137,3 +137,17 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
   replace is not implemented, so music means rejection for now.
 - **Bonus signal:** explosion/gunshot/laughter/scream/crash scores are stored
   per window for the Phase 4 ranker.
+
+## ADR-0011 L0 bundles and an offline publish gate  [GROWTH, QA]
+- **Date:** 2026-11-22 · **Status:** Accepted
+- **Choice:** `clipops package make <short> --platform X` writes a folder with
+  a platform-specific export (per `config/platforms/*.yaml`), a cover frame,
+  **draft** text derived from the transcript, required flags and manual
+  posting steps. It also evaluates the spec 11.7 gate offline: rights scope,
+  QA pass, render hash unchanged since QA, open review flags, creative review,
+  contribution test (≥2), duration and autonomy level. A bundle that is not
+  ready says "NOT READY: do not post" on its first line.
+- **Why:** L0 is useful before any platform approval. A gate that blocks
+  skeleton output proves the gate works.
+- **Not done:** no titles optimised for performance (no evidence; S2), no
+  posting, no duplicate check against publication history (no history yet).

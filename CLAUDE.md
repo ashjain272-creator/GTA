@@ -63,7 +63,9 @@ lawful alternative instead.
 - `scripts/`: inspect_hardware.py, check_credentials.py (stdlib only), make_synthetic_fixture.py
 - `src/clipops/`: ingest (rights, probe), analysis (transcribe, audio, scenes),
   candidates, editing (plan), render (vertical, subtitles), qa (checks, wer),
-  orchestrator (pipeline), demo, runreport, config, cli
+  analysis/audio_events (YAMNet music screen), qa/visual (flash, caption bounds),
+  packaging (L0 bundles), publish/gate (offline gate), orchestrator (pipeline), demo, runreport, config, cli
+- `config/platforms/*.yaml`: per-platform export and packaging profiles
 - `tests/`: unit (smoke), integration, e2e, fixtures
 - `schemas/`: rights_record.schema.json · `config/game_policies.yaml`: publisher policy registry
 - `reports/demo/`: recorded demo runs · `skills/`, `tools/`: from Phase 1 onward

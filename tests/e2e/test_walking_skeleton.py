@@ -101,3 +101,45 @@ def test_music_bed_blocks_every_candidate(tmp_path):
     assert all("music_screen" in c["rejection_reason"] for c in cands)
     with pytest.raises(StageFailed, match="no proposed candidate"):
         p.plan(sid)
+
+
+def test_l0_bundles_are_honest_and_platform_specific(demo, tmp_path):
+    import json as _json
+    from pathlib import Path
+
+    from clipops import config
+    from clipops.packaging.bundle import make_bundle
+    from clipops.storage.artefacts import read_json
+
+    _, s, out = demo
+    cfg = config.load()
+    src_dir = config.data_path(cfg, "work") / s["source_id"]
+    plan = read_json(out / "plan.json")
+    qa = read_json(out / "qa.json")
+    info = read_json(next((src_dir / "renders").glob("*.json")))
+    metas = {p: make_bundle(cfg, src_dir, plan, info, qa, p, tmp_path) for p in ("youtube", "tiktok", "instagram")}
+    for p, m in metas.items():
+        assert m["ready"] is False                                   # skeleton output must never be marked ready
+        assert "contribution_test" in m["verdict"]["blocking"]
+        text = (tmp_path / info["short_id"] / p / "text.md").read_text()
+        assert text.startswith("# NOT READY")
+    assert metas["tiktok"]["watermark_allowed"] is False
+    assert metas["youtube"]["flags"]["privacyStatus"] == "private"    # never rely on the public default (R33)
+    ig = (tmp_path / info["short_id"] / "instagram" / "video.mp4").read_bytes()
+    assert b"elst" not in ig and ig.find(b"moov") < ig.find(b"mdat")   # Reels spec: no edit lists, moov first
+
+
+def test_gate_can_pass_when_every_requirement_is_met(demo, tmp_path):
+    from clipops import config
+    from clipops.packaging.bundle import load_profile
+    from clipops.publish.gate import evaluate
+    from clipops.storage.artefacts import read_json
+
+    _, s, out = demo
+    cfg = config.load()
+    src_dir = config.data_path(cfg, "work") / s["source_id"]
+    plan = read_json(out / "plan.json") | {"contribution": ["narrative restructuring", "commentary captions"]}
+    qa = read_json(out / "qa.json") | {"review_flags": [], "creative_review": "reviewed: rubric record R-1"}
+    info = read_json(next((src_dir / "renders").glob("*.json")))
+    v = evaluate(cfg, src_dir, plan, info, qa, "youtube", load_profile(config.REPO, "youtube"))
+    assert v["ready"], v["blocking"]
