@@ -32,7 +32,9 @@ jobs:
       - name: Cache ASR model
         uses: actions/cache@v4
         with:
-          path: ~/.cache/huggingface
-          key: hf-faster-whisper-base.en
+          path: |
+            ~/.cache/huggingface
+            data/models
+          key: hf-faster-whisper-base.en-yamnet
       - name: Unit, integration and end-to-end tests
         run: uv run pytest -q

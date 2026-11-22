@@ -16,7 +16,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
-asr = ["faster-whisper>=1.2,<2"]
+# analysis models: speech recognition and audio-event tagging (music screen)
+asr = ["faster-whisper>=1.2,<2", "ai-edge-litert>=2.4,<3"]
 
 [project.scripts]
 clipops = "clipops.cli:main"

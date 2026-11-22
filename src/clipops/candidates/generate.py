@@ -10,7 +10,7 @@ from __future__ import annotations
 import bisect
 import re
 
-MODEL_VERSION = "skeleton-heuristic-2"
+MODEL_VERSION = "skeleton-heuristic-3"
 EXCLAIM = re.compile(r"\b(no way|oh my|wow|what|let'?s go|yes|no no|insane|holy)\b|!", re.I)
 
 
@@ -42,7 +42,8 @@ def _clip(x: float) -> float:
 
 
 def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tuple[float, float]],
-             scenes: list[dict], audio_summary: dict, rights: dict, cfg: dict) -> dict:
+             scenes: list[dict], audio_summary: dict, rights: dict, cfg: dict,
+             events: dict | None = None) -> dict:
     c = cfg["candidates"]
     lead, tail = int(c["lead_in_s"] * 1e6), int(c["tail_s"] * 1e6)
     min_d, max_d = int(c["min_duration_s"] * 1e6), int(c["max_duration_s"] * 1e6)
@@ -92,6 +93,7 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
              "reason": f"window median momentary loudness {window_p50:.1f} LUFS (floor -50)"},
             {"name": "duration", "passed": min_d <= end - start <= max_d,
              "reason": f"{dur_s:.1f}s vs allowed {c['min_duration_s']}-{c['max_duration_s']}s"},
+            _music_gate(events, start, end, cfg["analysis"]),
             {"name": "dead_air", "passed": max_gap <= c["max_internal_gap_s"],
              "reason": f"longest pause between words {max_gap:.1f}s (max {c['max_internal_gap_s']}s)"},
             {"name": "payoff_floor", "passed": viability >= c["min_viability"],
@@ -147,6 +149,18 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
     return {"source_id": source_id, "model_version": MODEL_VERSION,
             "counts": {"proposed": len(kept), "rejected": len(cands) - len(kept)},
             "candidates": cands}
+
+
+def _music_gate(events: dict | None, start: int, end: int, a: dict) -> dict:
+    """R26: suspected music blocks the candidate until mute/replace exists. Fails closed."""
+    from ..analysis.audio_events import music_fraction
+    if events is None or events.get("unscreened"):
+        return {"name": "music_screen", "passed": False,
+                "reason": "source not screened for music (model or runtime unavailable): fail closed"}
+    frac = music_fraction(events, start, end, a["music_threshold"])
+    return {"name": "music_screen", "passed": frac <= a["max_music_fraction"],
+            "reason": f"music in {frac:.0%} of windows (max {a['max_music_fraction']:.0%}, threshold {a['music_threshold']})"
+                      + ("" if frac <= a["max_music_fraction"] else "; mute/replace not implemented, so rejected")}
 
 
 def _overlap(a: dict, b: dict) -> float:

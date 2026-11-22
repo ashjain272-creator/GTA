@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .. import __version__
 from ..analysis import audio as audio_mod
+from ..analysis import audio_events as events_mod
 from ..analysis import scenes as scenes_mod
 from ..analysis import transcribe as asr_mod
 from ..candidates.generate import generate
@@ -27,7 +28,7 @@ from ..storage.artefacts import read_json, source_dir, write_json
 
 # Bump a stage's version whenever its implementation changes output, so cached
 # artefacts are invalidated (resumability must never serve stale results).
-STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "cands": 3}
+STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "events": 1, "cands": 4}
 
 
 def _key(*parts) -> str:
@@ -143,6 +144,26 @@ class Pipeline:
             else:
                 cuts = scenes_mod.scene_cuts(src, self.cfg["analysis"]["scene_threshold"])
                 out["scenes"] = _store(d / "scenes.json", key, {"cuts": cuts})
+        with self.report.stage("audio_events") as st:
+            key = _key("events", STAGE_VERSIONS["events"], rec["sha256"], self.cfg["models"]["yamnet"]["model_sha256"])
+            if not has_audio:
+                self.report.skip("audio_events", "no audio stream")
+                st["status"] = "skipped"
+                out["events"] = {"frames": [], "unscreened": False}
+            elif (hit := _cached(d / "audio_events.json", key)):
+                st["status"] = "cached"
+                out["events"] = hit
+            else:
+                try:
+                    ev = events_mod.tag(src, self.cfg)
+                    self.report.data["models"]["audio_events"] = f"{ev['model']}:{ev['model_sha256'][:12]}"
+                    out["events"] = _store(d / "audio_events.json", key, ev | {"unscreened": False})
+                except StageFailed as e:
+                    # fail closed: candidates from an unscreened source cannot pass the music gate
+                    st["status"] = "failed_unscreened"
+                    st["error"] = {"code": e.code, "message": e.message}
+                    self.report.warn("audio_events", "unscreened", f"music screen unavailable ({e.code}); candidates will be rejected")
+                    out["events"] = {"frames": [], "unscreened": True, "error": e.message}
         return out
 
     def candidates(self, source_id: str) -> dict:
@@ -162,12 +183,13 @@ class Pipeline:
             self.report.warn("candidates", "heuristic_ranker",
                              f"ranking uses {MODEL_VERSION}: unvalidated, uncertainty reported high")
             key = _key("cands", STAGE_VERSIONS["cands"], a["transcript"].get("_input_key"), a["audio"].get("_input_key"),
-                       a["scenes"].get("_input_key"), self.cfg["candidates"], rec["class"])
+                       a["scenes"].get("_input_key"), a["events"].get("_input_key"), a["events"].get("unscreened"),
+                       self.cfg["candidates"], self.cfg["analysis"], rec["class"])
             if (hit := _cached(d / "candidates.json", key)):
                 st["status"] = "cached"
                 return hit
             res = generate(source_id, probe["duration_us"], a["transcript"], [tuple(x) for x in a["audio"]["curve"]],
-                           a["scenes"]["cuts"], a["audio"]["summary"], rec, self.cfg)
+                           a["scenes"]["cuts"], a["audio"]["summary"], rec, self.cfg, events=a["events"])
             st.update(res["counts"])
             return _store(d / "candidates.json", key, res)
 

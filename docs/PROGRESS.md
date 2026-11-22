@@ -127,3 +127,40 @@ Append-only. CHECKPOINT entries are safe resumption points.
   designed now against PLATFORM_LIMITS, but must not be built as a stub.
 - **Hazards:** YouTube's public default (R33). The fetch tool has its own host
   allowlist, separate from the environment, so use curl for docs.
+
+---
+
+## 2026-11-22: Safety screens, policy reads, licences  [QA, RIGHTS, ML, RESEARCH]
+- Environment: five policy hosts added and a setup script saved (espeak-ng +
+  `uv sync --extra dev --extra asr`). The script is **unproven until a fresh
+  container starts** on the "GTA" environment.
+- Read at source: YouTube reused content (applies even with permission;
+  channel-wide), Shorts (>1 min with any claim blocked), Twitch ToS licence
+  scope, TikTok unoriginal-content rule, WCAG 2.3.1. → E-030-E-035, AM-27, AM-28, R34.
+- QA: captions measured from rendered pixels against the safe area; glyph
+  height; WCAG general-flash detector (unit tests on 10 Hz vs 1 Hz flicker);
+  output music screen.
+- Music screen: YAMNet via LiteRT (ADR-0010). Candidate gate and QA, fail
+  closed. E2E test: a music-bed fixture yields zero publishable candidates.
+- Licence matrix plus a test over the locked closure.
+- Tests: 50 (unit, integration, e2e).
+
+### Self-critique
+1. Music thresholds and the flash-area approximation are uncalibrated. They are
+   tested only on synthetic signals, so real GTA audio (engine noise, radio
+   under dialogue) may behave differently.
+2. YAMNet provenance is a mirror. The hash pin protects integrity, not authenticity.
+3. Rejection is the only music remedy. Owned footage with radio playing will
+   yield nothing until mute/duck or source separation exists.
+
+### CHECKPOINT 2026-11-22-b
+- **Phase:** 0/1. G0 blocked only by B-01.
+- **Verified:** `.venv/bin/pytest -q`: all pass (see commit). Demo QA passes,
+  with music_screen 0.0 and flash 1.0/s.
+- **Next step options:** (a) mute/duck path for music windows (source
+  separation is a Phase 1 decision); (b) use audio-event signals in the ranker;
+  (c) L0 packaging bundle per platform (PLATFORM_LIMITS fields, no watermark
+  for TikTok); (d) Instagram reused-content and Reels specs (help.instagram.com
+  now allowed).
+- **Hazards:** the Rockstar page is still unreadable here. A fresh container
+  depends on the new setup script.

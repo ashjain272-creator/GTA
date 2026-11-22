@@ -10,6 +10,7 @@ import re
 from pathlib import Path
 
 from ..media import ffprobe, run
+from ..runreport import StageFailed
 from ..render.vertical import _JSON
 from .visual import caption_bounds, flash_check, safe_area_violations
 
@@ -100,6 +101,16 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
     fl = flash_check(path, q["max_flashes_per_s"])
     checks.append(_check("photosensitive_flash", fl["passed"], {k: fl[k] for k in ("max_flashes_per_s", "region", "first_transition_s")},
                          f"<= {q['max_flashes_per_s']} general flashes in any 1 s", "; ".join(fl["limitations"])))
+
+    # 5c. music in the output (R26): the pipeline adds no music, so any detected music came from the source
+    try:
+        from ..analysis.audio_events import music_fraction, tag
+        ev = tag(path, cfg)
+        mf = music_fraction(ev, 0, int(dur * 1e6), cfg["analysis"]["music_threshold"])
+        checks.append(_check("music_screen", mf <= cfg["analysis"]["max_music_fraction"], round(mf, 3),
+                             f"<= {cfg['analysis']['max_music_fraction']} share of windows with music"))
+    except StageFailed as e:
+        checks.append(_check("music_screen", False, f"unscreened: {e.code}", "screen must run (fail closed)"))
 
     # 6. proxy inspection material: contact sheet (spec 2.15)
     contact_dir.mkdir(parents=True, exist_ok=True)

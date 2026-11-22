@@ -27,10 +27,13 @@ G0 is **not passed** until B-01 clears. Hardware-independent Phase 1 work may
 proceed in parallel (17.17: "do not stall the whole project").
 
 ### Skeleton follow-ups (found by running it)
+- P0-17 ✅ WCAG general-flash QA check (red flash pending).
+- P0-18 ✅ Music screen (YAMNet) on candidates and renders, fail-closed (ADR-0010). Next: mute/duck path; calibration on real audio.
+- P0-19 ✅ Licence matrix (docs/LICENCES.md) with an enforcing test.
 - P0-13 ✅ `source classify <url>`: class E path producing a permission-request draft, with no download (spec 4.15 acceptance test 1).
 - P0-14 Asset registry check: rendering blocked when an unregistered asset is used (spec 4.15 test 3). Not reachable yet because no assets are used.
 - P0-15 ✅ Lockfile (uv.lock; 41 tests pass in the locked env) pinning faster-whisper, ctranslate2 and numpy (R31).
-- P0-16 Measure rendered caption bounds against the safe area (QA currently checks configuration only).
+- P0-16 ✅ Measure rendered caption bounds against the safe area (QA currently checks configuration only).
 
 ## Phase 1: Research and decisions (est. 4-6 sessions)
 - P1-01 ◐ Platform docs read at source (YouTube, TikTok, Instagram, Twitch

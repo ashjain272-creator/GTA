@@ -77,3 +77,27 @@ def test_rerun_after_interruption_resumes_from_artefacts(demo, monkeypatch):
     status = {st["name"]: st["status"] for st in rep2.data["stages"]}
     assert status["transcribe"] == "cached" and status["candidates"] == "cached"
     assert qa["passed"]
+
+
+def test_music_bed_blocks_every_candidate(tmp_path):
+    """R26 end to end: speech over a music bed yields no publishable candidate."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from clipops import config
+    from clipops.orchestrator.pipeline import Pipeline
+    from clipops.runreport import RunReport, StageFailed
+
+    repo = Path(__file__).resolve().parents[2]
+    fx = tmp_path / "music_fixture.mp4"
+    subprocess.run([sys.executable, str(repo / "scripts" / "make_synthetic_fixture.py"), str(fx), "--music"],
+                   check=True, capture_output=True)
+    cfg = config.load(overrides={"paths": {"work": str(tmp_path / "work"), "renders": str(tmp_path / "renders")}})
+    p = Pipeline(cfg, RunReport(cfg, "music test"))
+    sid = p.add_source(fx, "A", game=None, grant=None, synthetic=True)
+    cands = p.candidates(sid)["candidates"]
+    assert cands and all(c["status"] == "rejected" for c in cands)
+    assert all("music_screen" in c["rejection_reason"] for c in cands)
+    with pytest.raises(StageFailed, match="no proposed candidate"):
+        p.plan(sid)

@@ -117,3 +117,23 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
 - **Packaging consequence:** no channel watermark or logo burned into videos
   destined for TikTok (E-025). The render needs per-platform overlays.
 - **Revisit if:** TikTok publishes a personal-creator route or app review rejects `video.upload`.
+
+## ADR-0010 Audio-event model for the music screen: YAMNet via LiteRT  [ML, RIGHTS]
+- **Date:** 2026-11-22 · **Status:** Accepted (provisional, pending calibration on real footage)
+- **Need:** R26 (licensed music in GTA radio) is a top-five risk, and YouTube
+  blocks Shorts over 1 min that have any claim (E-031).
+- **Options:** AST (BSD-3; ONNX available, but needs Kaldi fbank features
+  reimplemented and is about 350 MB); PANNs (Apache-2.0; Zenodo weights not
+  reachable); YAMNet TFLite (Apache-2.0, about 4 MB, takes raw 16 kHz audio
+  directly, no feature code).
+- **Choice:** YAMNet through `ai-edge-litert` (Apache-2.0), part of the `asr`
+  extra. Weights are fetched from a pinned URL and verified by sha256 (E-036).
+- **Gates:** a candidate is rejected if more than 10 % of its windows score
+  Music ≥ 0.30. QA rejects a render with detected music. If the model or
+  runtime is missing, everything **fails closed**. Thresholds are hypotheses
+  (E-037).
+- **Known limits:** a classifier cannot tell licensed music from
+  royalty-free music, and quiet music under engine noise may be missed. Mute or
+  replace is not implemented, so music means rejection for now.
+- **Bonus signal:** explosion/gunshot/laughter/scream/crash scores are stored
+  per window for the Phase 4 ranker.

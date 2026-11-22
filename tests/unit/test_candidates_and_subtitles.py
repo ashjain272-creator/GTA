@@ -28,12 +28,15 @@ def test_blocks_split_on_word_gaps_even_inside_one_segment():
     assert [b["text"] for b in blocks] == ["a b", "c"]
 
 
-def _gen(words, curve=None, **ovr):
+CLEAN = {"frames": [], "unscreened": False}
+
+
+def _gen(words, curve=None, ovr_events=CLEAN, **ovr):
     cfg = copy.deepcopy(CFG)
     cfg["candidates"].update(ovr)
     curve = curve or [(i / 10, -20.0) for i in range(0, 600)]
     return generate("src_0123456789abcdef", 60_000_000, transcript(words), curve, [],
-                    {"p50_lufs": -25.0}, {"class": "A"}, cfg)
+                    {"p50_lufs": -25.0}, {"class": "A"}, cfg, events=ovr_events)
 
 
 def test_candidate_boundaries_never_cut_inside_a_word():
@@ -95,3 +98,14 @@ def test_ass_timestamps_and_escaping():
 def test_wer():
     assert wer("No way, that worked!", "no way that worked")["wer"] == 0.0
     assert wer("a b c d", "a x c")["errors"] == 2
+
+
+def test_music_gate_rejects_music_and_fails_closed_when_unscreened():
+    words = [W(f"w{i}", i * 0.5, i * 0.5 + 0.4) for i in range(30)]
+    music = {"unscreened": False, "frames": [{"t_us": int(t * 1e6), "music": 0.9} for t in range(0, 20)]}
+    res = _gen(words, ovr_events=music)
+    assert all(c["status"] == "rejected" and "music_screen" in c["rejection_reason"] for c in res["candidates"])
+    res = _gen(words, ovr_events={"frames": [], "unscreened": True})
+    assert all("not screened" in c["rejection_reason"] for c in res["candidates"])
+    res = _gen(words)                                   # screened, no music
+    assert any(c["status"] == "proposed" for c in res["candidates"])

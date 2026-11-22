@@ -47,6 +47,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
     ap.add_argument("--truth")
+    ap.add_argument("--music", action="store_true",
+                    help="mix a synthetic melody under the whole track (tests the R26 music screen)")
     args = ap.parse_args()
     for tool in ("ffmpeg", "espeak-ng"):
         if not shutil.which(tool):
@@ -70,12 +72,21 @@ def main() -> int:
         ims = int(IMPACT_AT * 1000)
         filters.append(f"[{n + 1}:a]lowpass=f=900,afade=t=out:st=0.05:d=0.85,adelay={ims}|{ims},"
                        f"apad=whole_dur={DURATION}[imp]")
-        filters.append(f"{''.join(labels)}[{n}:a][imp]amix=inputs={n + 2}:normalize=0,"
+        mix_inputs, extra = n + 2, ""
+        if args.music:
+            # locally generated melody (no third-party music): stepped tones with harmonics
+            inputs += ["-f", "lavfi", "-i",
+                       "aevalsrc='0.25*sin(2*PI*(220*pow(2,floor(mod(t*4,8))/6))*t)"
+                       "+0.15*sin(2*PI*(330*pow(2,floor(mod(t*4,8))/6))*t)"
+                       f"+0.08*sin(2*PI*110*t)*gt(mod(t*2,1),0.5)':s=48000:d={DURATION}"]
+            extra, mix_inputs = f"[{n + 2}:a]", n + 3
+        filters.append(f"{''.join(labels)}[{n}:a][imp]{extra}amix=inputs={mix_inputs}:normalize=0,"
                        f"atrim=0:{DURATION},aformat=channel_layouts=stereo[a]")
         # video: moving test pattern, hard cut to a different scene at the impact
         inputs += ["-f", "lavfi", "-i", f"testsrc2=s=1280x720:r=30:d={IMPACT_AT}",
                    "-f", "lavfi", "-i", f"testsrc=s=1280x720:r=30:d={DURATION - IMPACT_AT}"]
-        filters.append(f"[{n + 2}:v][{n + 3}:v]concat=n=2:v=1:a=0,format=yuv420p[v]")
+        v0 = n + 2 + (1 if args.music else 0)
+        filters.append(f"[{v0}:v][{v0 + 1}:v]concat=n=2:v=1:a=0,format=yuv420p[v]")
         sh(["ffmpeg", "-hide_banner", "-y", *inputs, "-filter_complex", ";".join(filters),
             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
             "-c:a", "aac", "-b:a", "160k", "-t", str(DURATION), str(out)])
@@ -83,6 +94,7 @@ def main() -> int:
              "lines": [{"start_s": t, "text": s} for t, s in LINES], "impact_s": IMPACT_AT,
              "scene_cut_s": IMPACT_AT,
              "expected_best_moment_s": [LINES[0][0], LINES[3][0] + 3.0],
+             "music_bed": bool(args.music),
              "licence": "generated locally; see module docstring"}
     if args.truth:
         Path(args.truth).write_text(json.dumps(truth, indent=2) + "\n")

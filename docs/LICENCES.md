@@ -21,6 +21,9 @@ copyleft or unknown licence that is not listed here.
 | click, fsspec, httpx2, httpcore2, idna, protobuf, Pygments | various | BSD-2/3-Clause | yes |
 | flatbuffers, packaging | various | Apache-2.0 (packaging: Apache-2.0 OR BSD-2-Clause) | yes |
 | typing_extensions | 4.16.0 | PSF-2.0 | yes |
+| ai-edge-litert | 2.4.0 | Apache-2.0 | yes |
+| ml-dtypes | 0.7.0 | Apache-2.0 | yes |
+| backports-strenum | 1.3.1 | MIT | yes |
 
 ## Model weights
 
@@ -28,6 +31,7 @@ copyleft or unknown licence that is not listed here.
 |---|---|---|---|
 | Systran/faster-whisper-{tiny,base,small}.en (CTranslate2 conversions) | MIT | Hugging Face model API `cardData.license` | VERIFIED 2026-11-22 (E-030) |
 | openai/whisper-base.en (upstream weights) | Apache-2.0 per its Hugging Face card | Hugging Face model API | VERIFIED 2026-11-22 (E-030). Note: OpenAI's GitHub repository states MIT; both permit commercial use |
+| YAMNet TFLite (`thelou1s/yamnet`, mirror of Google's release) | Apache-2.0 | Hugging Face model API | VERIFIED licence tag; provenance SECONDARY (E-036) |
 | Silero VAD v6 (bundled in faster-whisper as `assets/silero_vad_v6.onnx`) | MIT (upstream silero-vad repository) | not read at source | SECONDARY |
 
 ## System tools (invoked as separate processes, never linked)
