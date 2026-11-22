@@ -11,6 +11,7 @@ from pathlib import Path
 
 from ..media import ffprobe, run
 from ..render.vertical import _JSON
+from .visual import caption_bounds, flash_check, safe_area_violations
 
 _BLACK = re.compile(r"black_start:([\d.]+)\s+black_end:([\d.]+)\s+black_duration:([\d.]+)")
 _SIL_START = re.compile(r"silence_start:\s*(-?[\d.]+)")
@@ -83,10 +84,22 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
     checks.append(_check("subtitle_confidence", not low_conf, low_conf or "all cues >= 0.5",
                          "no cue with a word below 0.5 confidence", "low-confidence cues need review", severity="review"))
     s = r["subtitles"]
-    checks.append(_check("subtitle_safe_area", s["margin_v"] >= 0.18 * r["height"] and s["margin_h"] >= 0.05 * r["width"],
-                         {"margin_v": s["margin_v"], "margin_h": s["margin_h"]},
-                         "margin_v >= 18% height, margin_h >= 5% width (HYPOTHESIS, VERIFY per platform 8.9)",
-                         "configuration check only; rendered text bounds not yet measured"))
+    # measured, not configured: render captions alone and find their pixel bounds
+    sa = q["safe_area"]
+    bounds = caption_bounds(Path(render_info["ass_path"]), cues, r["width"], r["height"])
+    bad = safe_area_violations(bounds, r["width"], r["height"], sa)
+    heights = [b["bbox"][3] - b["bbox"][1] for b in bounds if b["bbox"]]
+    checks.append(_check("subtitle_safe_area", not bad,
+                         {"cues_measured": len(bounds), "violations": bad[:5]},
+                         f"all caption pixels inside side {sa['side_px']}px, top {sa['top_px']}px, "
+                         f"bottom {sa['bottom_px']}px (HYPOTHESIS, VERIFY per platform 8.9)"))
+    checks.append(_check("subtitle_legible_size", bool(heights) and min(heights) >= q["min_caption_px"],
+                         min(heights, default=0), f">= {q['min_caption_px']} px glyph height (HYPOTHESIS)"))
+
+    # 5b. photosensitive flashing (WCAG 2.3.1 general-flash rule; red flash not implemented)
+    fl = flash_check(path, q["max_flashes_per_s"])
+    checks.append(_check("photosensitive_flash", fl["passed"], {k: fl[k] for k in ("max_flashes_per_s", "region", "first_transition_s")},
+                         f"<= {q['max_flashes_per_s']} general flashes in any 1 s", "; ".join(fl["limitations"])))
 
     # 6. proxy inspection material: contact sheet (spec 2.15)
     contact_dir.mkdir(parents=True, exist_ok=True)

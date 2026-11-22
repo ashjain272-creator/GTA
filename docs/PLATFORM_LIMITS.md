@@ -19,7 +19,8 @@ Last full pass: 2026-11-22.
 | Private-only restriction for unverified projects? | **No longer.** Revision history 2026-11-02: uploads from unverified projects "are no longer restricted to private viewing mode", reversing the 2020-07-28 policy. If `status.privacyStatus` is omitted, the video defaults to **public**. | VERIFIED (E-021) | revision history (updated 2026-11-17); videos/insert |
 | Is an audit needed? | Only to raise quota above the defaults (Audit and Quota Extension Form). 100 uploads/day exceeds this project's needs. | VERIFIED | quota_and_compliance_audits |
 | New mandatory fields | `paidProductPlacementDetails.hasPaidProductPlacement` **no longer defaults to false** (revision 2026-11-16). The adapter must set it explicitly. `status.containsSyntheticMedia` exists for altered/synthetic content. `status.selfDeclaredMadeForKids` must be set (always false for GTA content, AM-20). | VERIFIED (E-022) | revision history |
-| Shorts classification criteria (duration, aspect) | Not read at source (YouTube Help Center host not reachable from this environment) | PENDING | — |
+| Shorts classification | Square or vertical, up to **3 minutes** (uploads since 2024-10-15). Shorts **over 1 minute with any active copyright claim are blocked globally**. | VERIFIED (E-031) | support.google.com/youtube/answer/15424877 |
+| Reused / inauthentic content (monetisation) | Judged channel-wide; applies **even with the creator's permission**; clips "with little or no narrative" and templated storylines are ineligible | VERIFIED (E-032) | support.google.com/youtube/answer/1311392 |
 | What a human must do | Create a Google Cloud project, enable the API, configure the consent screen, create a Desktop OAuth client, and authorise in the browser | — | BLOCKERS B-03 |
 | Adapter safety rule | Always send `privacyStatus` explicitly: `private` at L1, never rely on the public default | DECISION ADR-0009 | — |
 
@@ -32,6 +33,7 @@ Last full pass: 2026-11-22.
 | Inbox / draft upload (`video.upload`) | `POST /v2/post/publish/inbox/video/init/`. The video lands in the creator's inbox and the creator completes the post in the TikTok app. Rate limit: **6 requests/min per access token**. The private-only restriction is stated for Direct Post, not for inbox upload. Whether app review grants `video.upload` to a personal tool is unknown. | VERIFIED (mechanics), PENDING (approval) | upload-video reference (updated 2026-08-04); scopes |
 | Posting cap (Direct Post) | About 15 posts per creator per 24 h, shared across all API clients, plus a per-client active-creator cap | VERIFIED | content-sharing-guidelines |
 | Required UX if Direct Post is ever used | Show creator nickname; privacy dropdown with **no default**; interaction toggles off by default; commercial-content disclosure; music-usage consent text; preview; explicit consent before upload; status polling | VERIFIED | content-sharing-guidelines |
+| Reused content | "ineligible for the FYF if it includes unoriginal or reused material without anything new" | VERIFIED (E-035) | community guidelines |
 | Watermarks | Apps must not add brand names, logos, watermarks, links or promotional text to content shared to TikTok | VERIFIED (E-025) | content-sharing-guidelines |
 | Upload transfer | `FILE_UPLOAD` (chunked from a local file: chunks 5-64 MB, final up to 128 MB, at most 1,000) or `PULL_FROM_URL` (only from a domain whose ownership is verified) | VERIFIED | media-transfer-guide (updated 2026-08-04) |
 | Media limits | MP4 (recommended)/WebM/MOV; H.264 (recommended)/H.265/VP8/VP9; 23-60 fps; 360-4096 px per side; up to 10 min via API; max 4 GB | VERIFIED | media-transfer-guide |
@@ -56,7 +58,7 @@ Last full pass: 2026-11-22.
 | Clip metadata | Get Clips (by broadcaster, game or ID) | VERIFIED | API reference, clips |
 | Clip file download | **Get Clips Download** `GET /helix/clips/downloads`: user token with `editor:manage:clips` or `channel:manage:clips`, or an app token where that user has authorised the scope. **Only the broadcaster or their editors**: 403 "The user is not an editor for the specified broadcaster". Up to 10 clip IDs per call; 100 requests/min; URLs are temporary (landscape and portrait variants). | VERIFIED (E-028) | dev.twitch.tv/docs/api/reference/clips |
 | Implication | Technically consistent with rights classes A (own channel) and B (operator made editor by a consenting creator). The API gives no route to other creators' clip files. | DECISION | spec 4.3 |
-| Clip ownership and republishing terms | Not read: the Terms of Service redirect to legal.twitch.com, which this environment does not allow | PENDING | — |
+| Clip ownership and republishing terms | Other users get a licence only "as necessary to enable" Twitch's own sharing features. Republishing elsewhere needs the broadcaster's permission (class B). Broadcasters warrant third-party consents. | VERIFIED (E-034) | legal.twitch.com ToS §8 |
 | VOD download | No official endpoint found in the reference | SECONDARY | E-006 |
 
 ## Rockstar Games (game publisher layer)

@@ -18,7 +18,7 @@ Owner roles: RIGHTS, ARCH, MEDIA, ML, EDIT, GROWTH, DATA, QA, SEC.
 | R10 | Duplicate posting after failures | M | M | Retries on network errors are routine | Idempotency keys; platform check before retry | Duplicate detected | ARCH | Open |
 | R11 | Disk exhaustion | M | M | Long VODs and intermediates are large; operator disk unknown | Retention policy; admission guard (`min_free_disk_gib`); alerts | Free space below threshold | ARCH | Open |
 | R12 | Overheating / throttling on a laptop | M | L | Operator hardware unknown | Thermal test (`--thermal 10`); scheduling | Render slowdown | MEDIA | Open |
-| R13 | Flashing content harms viewers | M | H | Explosions/muzzle flash are common in GTA-type footage | Flash detection and blocking | Flash check failure | QA | Open |
+| R13 | Flashing content harms viewers | M | H | Explosions/muzzle flash are common in GTA-type footage | WCAG 2.3.1 general-flash check in QA (blocking) since 2026-11-22; red-flash test pending | Flash check failure | QA | Partly mitigated |
 | R14 | Misleading edits misrepresent speakers | M | H | Tight cutting of speech can change meaning | Meaning-preservation check; review | Flagged edit | EDIT | Open |
 | R15 | Unrealistic revenue expectations | M | M | Monetisation of GTA footage is restricted (R25) | No forecasts; honest ledger | Operator asks for projections | RIGHTS | Open |
 | R16 | Learning loop chases noise | H | M | Small audiences give tiny samples (spec S3) | Guardrails; replication; rollback | Metric swings after changes | DATA | Open |
@@ -38,6 +38,7 @@ Owner roles: RIGHTS, ARCH, MEDIA, ML, EDIT, GROWTH, DATA, QA, SEC.
 | R30 | **Contradictory official platform docs** lead to wrong capacity plans | H | M | E-002, E-003, E-005 | Read live docs and query live limits (e.g. IG `content_publishing_limit`) at runtime rather than hardcoding | Quota error in production | GROWTH | Open |
 | R31 | **Upstream API drift in media/ASR libraries** breaks stages silently (e.g. PyAV signature change, E-019) | M | M | Already observed once | Pin versions in a lockfile (Phase 2); FFmpeg-decoded input instead of library decoders; e2e test in CI | e2e failure after dependency update | QA | Open |
 | R33 | **Public-by-default uploads**: YouTube now defaults omitted privacyStatus to public and no longer forces unverified projects to private (E-021) | M | H | A missing field would publish publicly at L1 | Adapter always sets privacyStatus explicitly; contract test asserts it; publish gate checks the autonomy level | Any upload request without privacyStatus | SEC | Open |
+| R34 | **Channel-wide demonetisation** from a minority of low-contribution shorts: the reused-content policy applies to the channel as a whole and regardless of permission (E-032) | M | H | One templated batch can taint the channel | Contribution test blocks publishing; channel originality index; style diversity checks (R07) | Monetisation review notice | RIGHTS | Open |
 | R32 | **Stale cached artefacts** served after code changes | M | H | Observed once in the skeleton (candidates cached across a logic change) | Stage versions in input keys (ADR-0007); bump rule in pipeline.py; test_resume | Output unchanged after a logic change | ARCH | Mitigated |
 
 ## Top five (Phase 0 ranking)

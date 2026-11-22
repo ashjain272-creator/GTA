@@ -151,6 +151,20 @@ logos, watermarks or promotional text to shared content (E-025). Styles must not
 burn channel branding into TikTok renders. Per-platform render variants are
 required (spec 8.9 already allows this).
 
+**AM-27 · CLARIFICATION (spec vs platform rule) · 4.5, 4.7, 13.3.** YouTube's
+reused-content policy "applies even if you have permission from the original
+creator" and is judged channel-wide (E-032). TikTok withholds recommendation
+from reused material "without anything new" (E-035). So creator partnership
+(spec 4.5) solves **rights**, not **originality**. The contribution test (4.7)
+is mandatory for every short in every rights class, including owned footage. A
+channel-level originality index (13.3) gates monetisation readiness.
+Compilations "with little or no narrative" fail by definition.
+
+**AM-28 · CLARIFICATION · 7.7.** Default maximum short duration stays at or below
+60 s. YouTube blocks Shorts over one minute globally when any copyright claim is
+active (E-031), and GTA footage carries a radio-music claim risk (R26). Longer
+shorts need an explicit plan-level reason and a clean music screen.
+
 ## 6. Document-level
 
 **AM-23 · CLARIFICATION · X1.** The spec (~394 KB as Markdown) cannot be held in
@@ -171,11 +185,11 @@ The status of each group. Detail goes in EVIDENCE.md as items are checked.
 | TikTok Content Posting API audit and private restriction | 3.5, 11.3 | **VERIFIED** (E-023-E-025); new constraint AM-25 |
 | Instagram publishing requirements and limits | 3.5, 11.3 | **VERIFIED** (E-026, E-027); Reels media specs PENDING |
 | Twitch clips/VOD access and reuse terms | 3.5, 4.4, 11.3 | Clip download **VERIFIED** (E-028); ToS/clip ownership PENDING (host blocked, E-029) |
-| Platform reused-content / transformation wording | 4.7 | Pending |
-| Photosensitive-seizure guideline thresholds | 4.9 | Pending |
+| Platform reused-content / transformation wording | 4.7 | **VERIFIED** YouTube (E-032), TikTok (E-035); Instagram PENDING |
+| Photosensitive-seizure guideline thresholds | 4.9 | **VERIFIED** WCAG 2.3.1 (E-033); general flash implemented, red flash pending |
 | AI/sponsored disclosure labels | 4.10 | Pending |
 | Data-protection obligations (jurisdiction unknown) | 4.12 | Pending; depends on Q (jurisdiction) |
-| Model licences (diarisation, ASR) | 5.5, 6.4 | Pending; licence matrix in Phase 1 |
+| Model licences (diarisation, ASR) | 5.5, 6.4 | ASR **VERIFIED** (E-030, LICENCES.md); diarisation pending |
 | Subtitle and caption handling per platform | 6.5, 8.10 | Pending |
 | Safe areas per platform UI | 8.9 | Pending |
 | Loudness behaviour per platform | 8.11 | Pending |

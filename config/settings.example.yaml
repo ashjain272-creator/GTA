@@ -64,7 +64,7 @@ analysis:
 
 candidates:
   min_duration_s: 8.0           # HYPOTHESIS (spec 7.7 duration guidance to be researched)
-  max_duration_s: 45.0
+  max_duration_s: 45.0          # keep <= 60: Shorts over 1 min with any active claim are blocked globally (E-031)
   lead_in_s: 0.6                # silence kept before first word
   tail_s: 0.8                   # reaction tail kept after last word
   max_candidates_per_source: 5
@@ -99,3 +99,9 @@ qa:
   max_silence_s: 2.0
   silence_threshold_db: -50
   contact_sheet_interval_s: 2.0
+  max_flashes_per_s: 3          # WCAG 2.2 SC 2.3.1 general-flash rule (E-033); red flash not implemented
+  min_caption_px: 40            # smallest acceptable rendered glyph height (HYPOTHESIS)
+  safe_area:                    # pixels kept free of captions on 1080x1920 (HYPOTHESIS: platform UI overlays, VERIFY 8.9)
+    top_px: 220
+    bottom_px: 380
+    side_px: 90
