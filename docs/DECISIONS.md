@@ -151,3 +151,16 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
   skeleton output proves the gate works.
 - **Not done:** no titles optimised for performance (no evidence; S2), no
   posting, no duplicate check against publication history (no history yet).
+
+## ADR-0012 Hardware-dependent choices for the operator's Mac mini (M4, 16 GB)  [MEDIA, ML, ARCH]
+- **Date:** 2026-11-24 · **Status:** Provisional. Partially supersedes the
+  deferral in ADR-0002. Encoder results and benchmarks are still pending.
+- **Evidence:** E-040, E-041, docs/HARDWARE_OPERATOR.md.
+- **Choices:**
+  1. ASR candidates to benchmark on the Mac: faster-whisper int8 CPU (current
+     default), whisper.cpp + Metal, MLX Whisper; sizes up to medium.
+  2. Drafts may use h264_videotoolbox once its encode test passes. Finals stay
+     libx264 pending a quality comparison.
+  3. `resources.max_heavy_jobs: 2` unchanged (16 GB shared by ASR and render).
+  4. Real-footage runs stay blocked by disk space (B-08).
+- **Revisit when:** the operator-machine hardware.json and benchmark results exist.

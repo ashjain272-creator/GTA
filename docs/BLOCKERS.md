@@ -7,7 +7,7 @@ them against the live docs and updates this file.
 
 ---
 
-## B-01 Operator machine not inspected (partial run 2026-11-22, see E-040)
+## B-01 Operator machine not inspected: MOSTLY RESOLVED 2026-11-24 (Apple M4, 16 GB; see docs/HARDWARE_OPERATOR.md). Remaining: encoder test results
 - **Blocks:** hardware-dependent decisions (spec 5.6 #4, #5, #7, #9, #12,
   concurrency), Gate G0 hardware criterion, DoD item 1.
 - **Why:** this session runs in a cloud container. No operator computer is attached.
@@ -32,8 +32,8 @@ them against the live docs and updates this file.
 ## B-08 Operator Mac toolchain and disk space
 - **Found by:** the first run of the inspection on the operator's Mac mini (E-040).
 - **Blocks:** any pipeline run on that machine; encoder tests in the hardware report.
-- **Missing:** FFmpeg (no Homebrew to install it); Python ≥ 3.11 (system has
-  3.9.6); disk space (6.7 GB free, while media work needs tens of GB).
+- **Missing:** ~~FFmpeg~~ (installed 9.0.2); ~~Python ≥ 3.11~~ (3.12.16 via uv);
+  **disk space** (6.7 GB free, while media work needs tens of GB). Still open.
 - **Steps:**
   1. Install Homebrew (official command from brew.sh; asks for your Mac password):
      `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`

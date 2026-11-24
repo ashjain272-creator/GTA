@@ -184,3 +184,20 @@ Append-only. CHECKPOINT entries are safe resumption points.
   Appendix B). Also: mute/duck for music windows; ranker using audio-event
   signals.
 - **Hazards:** unchanged (Rockstar page unread; setup script unproven until a fresh container).
+
+## 2026-11-24: Operator machine identified  [MEDIA, WRITER]
+- Through the operator's terminal: Homebrew, FFmpeg 9.0.2, uv and Python
+  3.12.16 installed; inspection re-run completed. Transferring the report
+  failed (paste and file attach both failed), so the operator supplied the
+  key facts: Apple M4, 16 GB.
+- docs/HARDWARE_OPERATOR.md, ADR-0012, E-041. B-01 mostly resolved; B-08 disk still open.
+- Lesson: per-step copy/paste with a non-technical operator is costly.
+  Prefer Remote Control (desktop app → Settings → Claude Code → Remote
+  Control) so sessions run commands on the Mac directly.
+
+### CHECKPOINT 2026-11-24-a
+- **Phase:** 0/1. G0 needs only the encoder test results (in the Mac's
+  local config/hardware.json) to close the hardware criterion.
+- **Next step:** the originality/contribution layer (CHECKPOINT 2026-11-22-c);
+  M4 benchmarks once the Mac is connected or results are pushed.
+- **Hazards:** operator disk 6.7 GB free.
