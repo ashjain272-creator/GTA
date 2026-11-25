@@ -46,7 +46,8 @@ def main() -> int:
                "style": plan["style"]["name"], "layout": plan["framing"]["layout"], "framing_reason": plan["framing"]["reason"],
                "structure": plan["structure"]["name"], "hook": plan["hook"]["text"], "zooms": len(plan["zooms"]),
                "sfx": [e["asset"] for e in plan["sfx"]], "qa_passed": qa["passed"], "qa_failed": qa["failed"],
-               "review": qa["review_flags"], "duration_s": plan["duration_us"] / 1e6}
+               "review": qa["review_flags"], "duration_s": plan["duration_us"] / 1e6,
+               "machine_review": {k: (qa.get("creative_review_machine") or {}).get(k) for k in ("overall", "verdict", "weaknesses")}}
         rows.append(row)
         print(json.dumps(row))
     (out / "summary.json").write_text(json.dumps(rows, indent=2))

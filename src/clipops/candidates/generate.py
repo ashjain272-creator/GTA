@@ -115,6 +115,11 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
                     if prev is not None:
                         end = all_words[prev]["end_us"] + tail             # or end on the last complete one
             start, end = max(0, start), min(duration_us, end)
+            # the tail must not sweep in the first words of the next sentence
+            inside = [j for j, w in enumerate(all_words) if start <= w["start_us"] and w["end_us"] <= end]
+            last_end = max((j for j in inside if ends_sentence(all_words[j])), default=None)
+            if last_end is not None and last_end < (inside[-1] if inside else -1):
+                end = min(end, max(all_words[last_end]["end_us"] + 100_000, all_words[last_end + 1]["start_us"] - 60_000))
             blks = [b for b in blocks if b["end_us"] > start and b["start_us"] < end]
             blks = [dict(b, words=[w for w in b["words"] if start <= w["start_us"] and w["end_us"] <= end]) for b in blks]
             blks = [dict(b, text=" ".join(w["text"] for w in b["words"])) for b in blks if b["words"]]

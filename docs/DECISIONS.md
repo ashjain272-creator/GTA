@@ -231,3 +231,24 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
   Viability weights payoff 0.28, hook 0.18, story arc 0.18, intensity 0.14,
   laugh/scream 0.10, density 0.07, visual 0.05. The payoff time is stored for
   the planner. Model version `heuristic-v1-events`.
+
+## ADR-0018 Real-footage hardening (night run 2026-11-25)  [EDIT, MEDIA, QA]
+- **Context:** the operator asked for autonomous testing on a YouTube GTA VI
+  link. YouTube blocked the download (E-045), so testing used the openly
+  licensed real corpus (E-048).
+- **Changes adopted:** direct-file acquisition with licence grants;
+  licence-aware music gate (`grant.covers_audio`); event-seeded action
+  candidates; cut-aware and sentence-aligned boundaries; per-window flash
+  mitigation plus a QA repair loop; black-edge trimming; caption minimum
+  duration, merging, rebalancing and phrase-aware chunking; profanity masking
+  with a brand-safety flag; hooks from scored phrases for unpunctuated
+  speech; first-person crosshair lock; deterministic loudness loop (E-046);
+  stage cache keys include a source-code hash.
+
+## ADR-0019 Two-pass captions  [ML]
+- **Date:** 2026-11-25 · **Status:** Accepted
+- **Choice:** base.en for the whole source (fast scan), then small.en
+  re-transcribes each chosen clip window (±1 s). Words that both models
+  produce are marked verified, with confidence floored at 0.9. Disagreements
+  keep their own confidence and still raise the human-review flag when low.
+- **Cost:** about 6 s per 20 s clip on 4 vCPU (E-049).

@@ -242,6 +242,7 @@ class Pipeline:
                                   "no proposed candidate: publishing nothing is the correct outcome (spec 7.8)")
             cand = pool[0]
             transcript = read_json(d / "transcript.json") if (d / "transcript.json").is_file() else {"segments": []}
+            transcript = self._refine_window(d, src, transcript, cand)
             prof = styles_mod.moment_profile(cand, events)
             from ..qa.window_checks import black_edges, source_flash_risk
             bb = cand["boundaries"]
@@ -277,6 +278,33 @@ class Pipeline:
                 styles_mod.record_choice(self.cfg, sel["name"])
             write_json(d / "plans" / f"{p['plan_id']}.json", p)
             return p
+
+    def _refine_window(self, d: Path, src: Path, transcript: dict, cand: dict) -> dict:
+        """Caption accuracy: re-transcribe the clip window with the larger refine model and cross-check
+        against the base pass. Cached per window. Returns a transcript whose window words are refined."""
+        model = self.cfg["asr"].get("refine_model")
+        b = cand["boundaries"]
+        if not model or not transcript.get("segments"):
+            return transcript
+        a, e = b["start_us"] - 1_000_000, b["end_us"] + 1_000_000
+        cache = d / "refined" / f"{cand['candidate_id']}_{model}.json"
+        key = _key("refine", model, transcript.get("_input_key"), a, e)
+        hit = _cached(cache, key)
+        with self.report.stage("refine_captions") as st:
+            if hit:
+                st["status"] = "cached"
+                words = hit["words"]
+            else:
+                from ..analysis.transcribe import cross_verify, transcribe_window
+                base = [w for s in transcript["segments"] for w in s["words"] if a <= w["start_us"] and w["end_us"] <= e]
+                words = cross_verify(base, transcribe_window(src, max(0, a), e, self.cfg, model))
+                _store(cache, key, {"words": words, "model": model})
+            st["agreement"] = round(sum(w["verified"] for w in words) / max(len(words), 1), 3)
+        outside = [w for s in transcript["segments"] for w in s["words"] if not (a <= w["start_us"] and w["end_us"] <= e)]
+        merged = sorted(outside + words, key=lambda w: w["start_us"])
+        return {"segments": [{"start_us": merged[0]["start_us"] if merged else 0, "end_us": merged[-1]["end_us"] if merged else 0,
+                              "text": " ".join(w["text"] for w in merged), "words": merged}], "refined_window": [a, e],
+                "_input_key": transcript.get("_input_key")}
 
     def render_and_qa(self, source_id: str, plan: dict) -> tuple[dict, dict]:
         """Render, inspect, and repair what can be repaired automatically (spec 10.5 repair loop)."""

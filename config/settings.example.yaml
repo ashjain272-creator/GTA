@@ -61,7 +61,8 @@ hosted_models:
 # ---------------------------------------------------------------- pipeline (walking skeleton)
 asr:
   engine: faster-whisper        # only engine implemented; others added via Phase 1 decision 5.6 #4
-  model: base.en                # HYPOTHESIS: container test only (E-013); decide on operator machine
+  model: base.en                # first pass over the whole source (fast)
+  refine_model: small.en        # second pass over each chosen clip window for caption accuracy (cross-verified)
   compute_type: int8
   device: cpu
   vad_filter: true
@@ -141,6 +142,7 @@ render:
     target_cps: 17              # extend display towards this reading speed when there is room
     max_cps: 22                 # faster than this → merge with the next cue when they fit
     max_cue_chars: 34
+    rebalance_max_shift_s: 0.5  # captions may lead/trail their words by at most this when evening reading speed
     mask_profanity: true        # brand safety: captions show "f***"; the spoken audio is unchanged
     margin_v: 420               # px from bottom; keeps captions above platform UI (HYPOTHESIS, 8.9 VERIFY)
     margin_h: 80

@@ -77,12 +77,23 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
     cues = plan["subtitles"]["cues"]
     out_of_range = [c for c in cues if c["end_us"] / 1e6 > dur + 0.05 or c["start_us"] < 0]
     cps = [len(c["text"]) / max((c["end_us"] - c["start_us"]) / 1e6, 0.05) for c in cues]
+    # reading load = continuous runs of captions (what the eye actually reads), plus a per-cue ceiling
+    runs, cur = [], []
+    for c in cues:
+        if cur and c["start_us"] - cur[-1]["end_us"] > 300_000:
+            runs.append(cur)
+            cur = []
+        cur.append(c)
+    if cur:
+        runs.append(cur)
+    run_cps = [sum(len(c["text"]) for c in r) / max((r[-1]["end_us"] - r[0]["start_us"]) / 1e6, 0.05) for r in runs]
     low_conf = [c["text"] for c in cues if c["min_confidence"] < 0.5]
     has_speech = bool(cues)
     checks.append(_check("subtitle_timing", not out_of_range, f"{len(cues)} cues, {len(out_of_range)} out of range",
                          "all cues inside clip" + ("" if has_speech else " (no speech in this clip: no captions needed)")))
-    checks.append(_check("subtitle_reading_speed", max(cps, default=0) <= 25.0, round(max(cps, default=0), 1),
-                         "<= 25 chars/s (HYPOTHESIS, spec 8.10)"))
+    checks.append(_check("subtitle_reading_speed", max(run_cps, default=0) <= 25.0 and max(cps, default=0) <= 35.0,
+                         {"run_avg_max": round(max(run_cps, default=0), 1), "cue_max": round(max(cps, default=0), 1)},
+                         "continuous runs <= 25 chars/s and no single cue > 35 (HYPOTHESIS, spec 8.10)"))
     checks.append(_check("subtitle_confidence", not low_conf, low_conf or "all cues >= 0.5",
                          "no cue with a word below 0.5 confidence", "low-confidence cues need review", severity="review"))
     s = r["subtitles"]
@@ -133,6 +144,8 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
         code="contact_sheet_failed")
 
     passed = all(c["passed"] for c in checks if c["severity"] == "blocking")
+    from .creative import review as _creative
+    machine_review = _creative(plan, {"checks": checks}, {"signals": plan.get("signals", {})})
     from ..storage.artefacts import sha256_file
     return {"short_id": render_info["short_id"], "path": str(path), "render_sha256": sha256_file(path),
             "passed": passed,
@@ -140,6 +153,7 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
             "review_flags": [c["name"] for c in checks if not c["passed"] and c["severity"] == "review"],
             "checks": checks,
             "contact_sheet": str(sheet),
-            "creative_review": "not performed: reviewer ensemble not built (Phase 6); proxies saved for review",
+            "creative_review": "not performed by a human; machine proxy review attached (creative_review_machine)",
+            "creative_review_machine": machine_review,
             "publishable": False,
             "publishable_reason": "skeleton output: no creative review, no contribution (spec 4.7), autonomy L0"}

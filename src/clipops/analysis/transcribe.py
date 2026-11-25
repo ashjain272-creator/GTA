@@ -47,3 +47,40 @@ def transcribe(path: Path, cfg: dict) -> dict:
         "segments": segments,
         "low_confidence_words": sum(1 for s in segments for w in s["words"] if w["confidence"] < 0.5),
     }
+
+
+_MODELS: dict = {}
+
+
+def transcribe_window(path: Path, start_us: int, end_us: int, cfg: dict, model_name: str) -> list[dict]:
+    """Re-transcribe one window with a (larger) model; word times are absolute (source) µs."""
+    from faster_whisper import WhisperModel
+    acfg = cfg["asr"]
+    audio = decode_audio_f32(path, start_s=start_us / 1e6, dur_s=(end_us - start_us) / 1e6, sr=SR)
+    key = (model_name, acfg["compute_type"])
+    if key not in _MODELS:
+        _MODELS[key] = WhisperModel(model_name, device=acfg["device"], compute_type=acfg["compute_type"])
+    segs, _ = _MODELS[key].transcribe(audio, word_timestamps=True, vad_filter=acfg["vad_filter"],
+                                      language=acfg.get("language"))
+    out = []
+    for s in segs:
+        for w in s.words or []:
+            out.append({"text": w.word.strip(), "start_us": start_us + int(w.start * 1e6),
+                        "end_us": start_us + int(w.end * 1e6), "confidence": round(float(w.probability), 4)})
+    return out
+
+
+def cross_verify(base: list[dict], refined: list[dict]) -> list[dict]:
+    """Mark refined words that the base model also produced (aligned by text); agreement = verified."""
+    import difflib
+    import re as _re
+    norm = lambda t: _re.sub(r"[^a-z0-9']", "", t.lower())  # noqa: E731
+    a, b = [norm(w["text"]) for w in base], [norm(w["text"]) for w in refined]
+    verified = set()
+    for blk in difflib.SequenceMatcher(a=a, b=b, autojunk=False).get_matching_blocks():
+        verified.update(range(blk.b, blk.b + blk.size))
+    out = []
+    for i, w in enumerate(refined):
+        v = i in verified
+        out.append(dict(w, verified=v, confidence=max(w["confidence"], 0.9) if v else w["confidence"]))
+    return out

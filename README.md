@@ -17,6 +17,13 @@ clipops health
 clipops demo run                  # synthetic fixture → short + QA + run report
 ```
 
+## Make shorts from a video (one command)
+```bash
+uv run python scripts/clip_url.py "<YouTube link or video file>" --rights E --attest "test only"
+```
+Shorts and a summary land in `out/`. Rights: A = your own footage, B/C = permission or licence
+(`--grant file.json`), E = none (your stated basis is recorded).
+
 ## Operator: first actions
 See `docs/OPERATOR_TODO.md`. The most important:
 ```bash

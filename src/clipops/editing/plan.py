@@ -291,6 +291,9 @@ def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, 
     freeze = int(st.get("freeze_end_s", 0) * 1e6)
     out_dur = main_dur + freeze
     cues = caption_cues(words, fmap, st, cfg["render"]["subtitles"])
+    for c in cues:                                   # never past the end of the clip's speech timeline
+        c["end_us"] = min(c["end_us"], main_dur)
+    cues = [c for c in cues if c["end_us"] - c["start_us"] >= 150_000]
     cap_style = dict(cfg["render"]["subtitles"]) | st["caption"]
     # wrap inside the safe area with room for the 18% word pop
     cap_style["margin_h"] = max(cap_style.get("margin_h", 80), cfg["qa"]["safe_area"]["side_px"] + 40)
@@ -351,6 +354,7 @@ def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, 
         "audio": {"loudness_target_lufs": cfg["render"]["loudness_target_lufs"],
                   "true_peak_dbtp": cfg["render"]["true_peak_dbtp"], "music": None},
         "duration_us": out_dur,
+        "signals": candidate.get("signals", {}),
         "contribution": contribution,
         "contribution_note": "automated contributions need operator review before they count for publishing",
     }

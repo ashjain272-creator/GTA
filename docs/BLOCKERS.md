@@ -44,17 +44,22 @@ them against the live docs and updates this file.
   no "older than the project's minimum" line, and free space above 50 GiB on
   the volume used for `data/`.
 
-## B-09 Where YouTube downloads can run
-- **Blocks:** live use of `clipops source add <youtube-url>` (AM-29).
-- **Why:** the cloud environment allows only listed hosts. YouTube serves
-  video from dynamically named hosts, which cannot be listed exactly.
-- **Operator choice:** (a) switch the "GTA" cloud environment to
-  unrestricted network access (simplest; every future session on it can
-  reach any public host); or (b) run acquisition on the Mac
-  (`uv sync --extra acquire`, then the same command), which needs disk
-  space (B-08).
-- **Then automatically:** one real acquisition is tested and recorded as
-  evidence, and the full pipeline runs on that video.
+## B-09 YouTube downloads from the cloud are blocked by YouTube
+- **Status 2026-11-25:** cloud network opened (operator approved). YouTube then
+  answered "429 Too Many Requests" and "Sign in to confirm you're not a bot"
+  (E-045). Data-centre IPs are routinely challenged; evasion is refused (AM-30).
+- **Working options:**
+  1. **Run on your Mac** (home connection, everything already installed):
+     ```bash
+     cd ~/GTA && git pull && uv sync --extra dev --extra asr --extra acquire
+     uv run python scripts/clip_url.py "https://www.youtube.com/watch?v=..." --rights E --attest "test only, not for posting"
+     ```
+     Finished shorts land in `~/GTA/out/`. Disk: one video plus its working files needs a few GB (B-08).
+  2. **Cookie file from a spare YouTube account** (works in the cloud too): export
+     cookies.txt in Netscape format with a browser extension, keep it outside the repo,
+     and set `CLIPOPS_YOUTUBE_COOKIES_FILE=/path/to/cookies.txt`. Never paste it in chat.
+  3. **Send the original file** (Drive/Dropbox/direct link). No YouTube involved.
+- yt-dlp also needs the Deno runtime for YouTube (`npm install -g deno` or `brew install deno`).
 
 ## B-02 No authorised source footage
 - **Blocks:** real ingestion, the evaluation corpus (Gate G1), every quality claim.
