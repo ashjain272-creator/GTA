@@ -193,3 +193,12 @@ def test_context_hook_prefers_a_complete_short_line_over_a_truncated_one():
              for i, t in enumerate(text)]
     h = make_hook("context", words, payoff_us=None, game="Luanti")
     assert h["text"] == "Luanti · And it's a little bit crazy!" and "..." not in h["text"]
+
+
+@pytest.mark.smoke
+def test_speechless_clip_gets_the_source_title_not_invented_text():
+    from clipops.editing.hooks import make_hook
+    h = make_hook("context", [], payoff_us=None, game="Xonotic", title="Xonotic Duel Draena vs MxCraven on Downer")
+    assert h["text"] == "Xonotic Duel Draena vs MxCraven on Downer" and "rights record" in h["source"]
+    assert make_hook("none", [], None, "Xonotic", title="X")["text"] == ""
+    assert make_hook("quote", [], None, None, title=None)["device"] == "none"

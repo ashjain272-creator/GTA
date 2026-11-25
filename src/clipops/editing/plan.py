@@ -285,7 +285,7 @@ def sfx_events(style: dict, cand: dict, words_out: list[dict], zooms: list[dict]
 # ----------------------------------------------------------------------------- plan
 def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, framing: dict,
               game: str | None = None, music_covered: bool = False, flash_mitigation: dict | None = None,
-              black_trim: dict | None = None) -> dict:
+              black_trim: dict | None = None, title: str | None = None) -> dict:
     st = style_sel["params"]
     b = dict(candidate["boundaries"])
     if black_trim:                                   # never open or close on black (fades in the source)
@@ -318,7 +318,7 @@ def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, 
     words_out = [w for c in cues for w in c["words"]]
     zooms = zoom_events(st, candidate, words, fmap, main_dur, cfg)
     sfx, sfx_notes = sfx_events(st, candidate, words_out, zooms, segs, fmap, main_dur, cfg)
-    hook = make_hook(st["hook"]["device"], words, candidate.get("signals", {}).get("payoff_us"), game)
+    hook = make_hook(st["hook"]["device"], words, candidate.get("signals", {}).get("payoff_us"), game, title=title)
     if cfg["render"]["subtitles"].get("mask_profanity", True):
         hook["text"] = mask_profanity(hook["text"])
     profane = len(PROFANITY.findall(" ".join(w["text"] for w in words)))

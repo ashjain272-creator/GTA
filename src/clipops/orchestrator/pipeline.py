@@ -7,6 +7,7 @@ version) matches; otherwise it reruns. Keys are stored inside each artefact.
 from __future__ import annotations
 
 import hashlib
+import re
 import json
 from pathlib import Path
 
@@ -268,7 +269,9 @@ class Pipeline:
                                    cut_times_s=[c["time_us"] / 1e6 for c in self.analyse(source_id)["scenes"]["cuts"]])
             # keyframes are relative to the window start, which is also the render input start
             game = (rec.get("game_policies") or [{}])[0].get("game")
-            p = make_plan(cand, transcript, self.cfg, style_sel=sel, framing=fr, game=game,
+            attribution = (rec.get("grant") or {}).get("attribution") or ""
+            title = re.split(r"\s[|(]|,", attribution)[0].strip() or None
+            p = make_plan(cand, transcript, self.cfg, style_sel=sel, framing=fr, game=game, title=title,
                           music_covered=bool((rec.get("grant") or {}).get("covers_audio")),
                           flash_mitigation=flash["mitigation"], black_trim=black)
             if flash["risk"]:

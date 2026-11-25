@@ -112,7 +112,20 @@ def setup_line(words: list[dict], payoff_us: int | None) -> str | None:
     return _clean(" ".join(w["text"] for w in pick)) if pick else None
 
 
-def make_hook(device: str, words: list[dict], payoff_us: int | None, game: str | None) -> dict:
+def _title_hook(title: str | None, game: str | None) -> dict | None:
+    """Speechless clips: the source's own title (from the rights record), never invented text."""
+    if not title:
+        return None
+    t = re.sub(r"\s+", " ", title).strip(" -·|")
+    if game and game.lower() not in t.lower():
+        t = f"{game} · {t}"
+    if len(t) > 48:
+        t = t[:45].rsplit(" ", 1)[0] + "..."
+    return {"device": "context", "text": t, "source": "source title from the rights record"}
+
+
+def make_hook(device: str, words: list[dict], payoff_us: int | None, game: str | None,
+              title: str | None = None) -> dict:
     quote = best_quote(words, payoff_us)
     setup = setup_line(words, payoff_us)
     if device == "quote" and quote:
@@ -136,4 +149,6 @@ def make_hook(device: str, words: list[dict], payoff_us: int | None, game: str |
             return {"device": "context", "text": label, "source": "game from rights record + speaker's own words"}
     if quote:
         return {"device": "quote", "text": f"“{quote['text']}”", "source": "verbatim transcript quote (fallback)"}
+    if device != "none" and (th := _title_hook(title, game)):
+        return th
     return {"device": "none", "text": "", "source": "no usable speech"}
