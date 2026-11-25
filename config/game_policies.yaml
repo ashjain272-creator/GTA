@@ -12,3 +12,30 @@ rockstar:
   known_third_party_risks: [in_game_radio_music]   # R26, ASSUMPTION A-010
   risk: high
   camera: third_person          # chase camera keeps the player near the centre (framing hint)
+luanti:
+  publisher: Luanti (formerly Minetest) community, free software (LGPL)
+  titles: ["Luanti", "Minetest"]
+  policy_url: https://www.luanti.org/
+  policy_checked: "2026-11-25"
+  commercial_use: free_software        # engine is free software; individual game/mod assets carry their own licences
+  monetisation_permitted: true
+  risk: low
+  camera: first_person
+xonotic:
+  publisher: Xonotic team, free software (GPLv3)
+  titles: ["Xonotic"]
+  policy_url: https://xonotic.org/
+  policy_checked: "2026-11-25"
+  commercial_use: free_software
+  monetisation_permitted: true
+  risk: low
+  camera: first_person
+veloren:
+  publisher: Veloren contributors, free software (GPLv3)
+  titles: ["Veloren"]
+  policy_url: https://veloren.net/
+  policy_checked: "2026-11-25"
+  commercial_use: free_software
+  monetisation_permitted: true
+  risk: low
+  camera: third_person

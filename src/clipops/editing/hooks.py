@@ -65,9 +65,11 @@ def make_hook(device: str, words: list[dict], payoff_us: int | None, game: str |
         return {"device": "tease", "text": f"“{s}”", "source": "verbatim setup line"}
     if device == "context":
         label = game or ""
-        if setup:
-            label = (label + " · " if label else "") + (setup if len(setup) <= 48 else setup[:45].rsplit(" ", 1)[0] + "...")
-        if label:
+        first = next((_clean(" ".join(w["text"] for w in st)) for st in _sentences(words) if len(st) >= 3), None)
+        line = setup or (quote["text"] if quote else None) or first
+        if line:
+            label = (label + " · " if label else "") + (line if len(line) <= 48 else line[:45].rsplit(" ", 1)[0] + "...")
+        if label and line:
             return {"device": "context", "text": label, "source": "game from rights record + speaker's own words"}
     if quote:
         return {"device": "quote", "text": f"“{quote['text']}”", "source": "verbatim transcript quote (fallback)"}

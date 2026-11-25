@@ -15,6 +15,9 @@ CORPUS = [
     ("https://upload.wikimedia.org/wikipedia/commons/b/b0/Dishonored_2_gameplay_clip.webm", "C", "dishonored2_clip.json", None),
     ("https://upload.wikimedia.org/wikipedia/commons/4/47/FEZ_trial_gameplay_HD.webm", "C", "fez_trial.json", None),
     ("https://upload.wikimedia.org/wikipedia/commons/6/65/America%27s_Army_2.5.0_-_Multiplayer_gameplay_montage.webm", "C", "americas_army_pd.json", None),
+    ("https://archive.org/download/storagespaceandsmeltingtreesayumsepisode51080p/Storage%20Space%20and%20Smelting%20Trees%20-%20Ayums%20-%20Episode%205-1080p.mp4", "C", "ayums_ep5.json", "Luanti"),
+    ("https://archive.org/download/xonotic-draena-vs-craven-downer/Xonotic%20-%20Duel%20-%20Draena%20vs%20MxCraven%20on%20Downer-v1199654406.mp4", "C", "xonotic_duel.json", "Xonotic"),
+    ("https://archive.org/download/discoveries-veloren/Discoveries_%20Veloren%21.mp4", "C", "veloren_discoveries.json", "Veloren"),
 ]
 
 

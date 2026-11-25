@@ -28,10 +28,23 @@ from ..storage.artefacts import read_json, source_dir, write_json
 
 # Bump a stage's version whenever its implementation changes output, so cached
 # artefacts are invalidated (resumability must never serve stale results).
-STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "events": 1, "cands": 7}
+STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "events": 1, "cands": 9}
+
+
+_CODE_FILES = {"probe": "ingest/probe.py", "asr": "analysis/transcribe.py", "audio": "analysis/audio.py",
+               "scenes": "analysis/scenes.py", "events": "analysis/audio_events.py", "cands": "candidates/generate.py"}
+_PKG = Path(__file__).resolve().parents[1]
+
+
+def _code_hash(stage: str) -> str:
+    """Hash of the stage's own source: editing the code invalidates its cached artefacts automatically."""
+    f = _CODE_FILES.get(stage)
+    return hashlib.sha256((_PKG / f).read_bytes()).hexdigest()[:12] if f else ""
 
 
 def _key(*parts) -> str:
+    if parts and isinstance(parts[0], str) and parts[0] in _CODE_FILES:
+        parts = (*parts, _code_hash(parts[0]))
     return hashlib.sha256(json.dumps([__version__, *parts], sort_keys=True, default=str).encode()).hexdigest()[:16]
 
 

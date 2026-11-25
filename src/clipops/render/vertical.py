@@ -155,28 +155,40 @@ def render(plan: dict, src: Path, out_dir: Path, cfg: dict, src_w: int, src_h: i
         mixed = stem
     meas = measure_loudness(mixed, r["loudness_target_lufs"], r["true_peak_dbtp"])
     out = out_dir / f"{short_id}.mp4"
-    # AAC adds inter-sample overshoot that depends on content (measured +0.6 dB on speech, +2.9 dB on a
-    # low-frequency impact, 2026-11-25). So: encode, measure the real true peak, tighten, retry.
-    limit_db = r["true_peak_dbtp"] - 1.0
+    target, ceiling = r["loudness_target_lufs"], r["true_peak_dbtp"]
+    # Deterministic loudness: optional compression (high crest factor, e.g. gunfire) → gain → limiter,
+    # then measure the ENCODED file and correct gain and limiter until both targets hold. FFmpeg's loudnorm
+    # was dropped here: it missed targets on short, transient-dense clips (measured -19.7 vs -14 LUFS, E-046).
+    plr = float(meas["input_tp"]) - float(meas["input_i"])
+    comp = "acompressor=threshold=-24dB:ratio=3:attack=5:release=150:makeup=2," if plr > r.get("compress_above_plr_db", 18) else ""
+    gain = target - float(meas["input_i"]) - (2.0 if comp else 0.0)
+    limit_db = ceiling - 1.0
     attempts = []
-    for _ in range(4):
-        af = (f"loudnorm=I={r['loudness_target_lufs']}:TP={r['true_peak_dbtp']}:LRA=11:"
-              f"measured_I={meas['input_i']}:measured_TP={meas['input_tp']}:measured_LRA={meas['input_lra']}:"
-              f"measured_thresh={meas['input_thresh']}:offset={meas['target_offset']}:linear=true,aresample=48000,"
-              f"alimiter=limit={10 ** (limit_db / 20):.4f}:attack=5:release=50:level=disabled")
+    for _ in range(8):
+        af = (f"aresample=48000,{comp}volume={gain:.2f}dB,"
+              f"alimiter=limit={10 ** (limit_db / 20):.4f}:attack=5:release=60:level=disabled")
         run(["ffmpeg", "-v", "error", "-y", "-i", str(mezz), "-i", str(mixed), "-map", "0:v:0", "-map", "1:a:0",
              "-c:v", "copy", "-af", af, "-c:a", r["audio_codec"], "-b:a", r["audio_bitrate"],
              "-movflags", "+faststart", "-shortest", str(out)], code="final_mux_failed")
-        tp = float(measure_loudness(out, r["loudness_target_lufs"], r["true_peak_dbtp"])["input_tp"])
-        attempts.append({"limiter_db": round(limit_db, 2), "true_peak": tp})
-        if tp <= r["true_peak_dbtp"]:
+        m = measure_loudness(out, target, ceiling)
+        li, tp = float(m["input_i"]), float(m["input_tp"])
+        attempts.append({"gain_db": round(gain, 2), "limiter_db": round(limit_db, 2), "lufs": li, "true_peak": tp,
+                         "compressed": bool(comp)})
+        ok_l = abs(li - target) <= r.get("loudness_tolerance_render_lu", 0.7)
+        ok_p = tp <= ceiling - 0.05
+        if ok_l and ok_p:
             break
-        limit_db -= min(1.0, (tp - r["true_peak_dbtp"]) + 0.1)   # small steps keep loudness on target
+        if not ok_p:
+            limit_db -= max(0.3, tp - ceiling + 0.2)
+        if not ok_l:
+            gain += max(-6.0, min(6.0, target - li))
+            if li < target - 3 and not comp:      # limiter is eating the gain: reduce crest factor instead
+                comp = "acompressor=threshold=-24dB:ratio=3:attack=5:release=150:makeup=2,"
     mezz.unlink(missing_ok=True)
     if mixed != stem:
         mixed.unlink(missing_ok=True)
     return {"short_id": short_id, "plan_id": plan["plan_id"], "path": str(out), "ass_path": str(ass_path),
             "stem_path": str(stem), "expected_duration_us": plan["duration_us"], "loudness_first_pass": meas,
             "encoder": r["video_codec"], "layout": plan["framing"]["layout"], "sfx_used": used_assets,
-            "true_peak_attempts": attempts,
+            "true_peak_attempts": attempts, "loudness_attempts": attempts,
             "style": plan["style"]["name"]}

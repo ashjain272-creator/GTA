@@ -10,7 +10,7 @@ from __future__ import annotations
 import bisect
 import re
 
-MODEL_VERSION = "heuristic-v3-cut-aware"
+MODEL_VERSION = "heuristic-v4-sentence-aligned"
 EXCLAIM = re.compile(r"\b(no way|oh my|wow|what|let'?s go|yes|no no|insane|holy)\b|!", re.I)
 
 
@@ -70,6 +70,45 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
     for start, end in _event_windows(events, curve, base, cut_times, all_words, duration_us, c):
         blks = [b for b in blocks if b["start_us"] >= start and b["end_us"] <= end]
         proposals.append((start, end, blks, "event_cluster"))
+
+    # sentence alignment: a clip starts at the start of a sentence and ends at the end of one
+    import re as _re
+    ends_sentence = lambda w: bool(_re.search(r"[.!?]$", w["text"]))  # noqa: E731
+    aligned = []
+    for start, end, blks, seed_pattern in proposals:
+        idx = [i for i, w in enumerate(all_words) if start <= w["start_us"] and w["end_us"] <= end]
+        if idx:
+            i0, i1 = idx[0], idx[-1]
+            k = i0
+            while k > 0 and not ends_sentence(all_words[k - 1]) and all_words[i0]["start_us"] - all_words[k - 1]["start_us"] < 6_000_000:
+                k -= 1
+            def lead_in(j):                                                # lead-in that never reaches into the previous word
+                prev_end = all_words[j - 1]["end_us"] + 50_000 if j > 0 else 0
+                return max(prev_end, all_words[j]["start_us"] - lead)
+            if k != i0 and (k == 0 or ends_sentence(all_words[k - 1])):
+                start = min(start, lead_in(k))                             # pull back to include the sentence start
+            elif k != i0:                                                  # can't reach a sentence start: skip forward
+                nxt = next((j for j in range(i0, i1 + 1) if j > 0 and ends_sentence(all_words[j - 1])), None)
+                if nxt is not None:
+                    start = lead_in(nxt)
+            elif k == i0 and i0 > 0:
+                start = max(start, lead_in(i0))
+            if not ends_sentence(all_words[i1]):
+                k = i1
+                while k + 1 < len(all_words) and not ends_sentence(all_words[k]) and all_words[k + 1]["end_us"] - all_words[i1]["end_us"] < 5_000_000:
+                    k += 1
+                if ends_sentence(all_words[k]):
+                    end = max(end, all_words[k]["end_us"] + tail)              # finish the sentence
+                else:
+                    prev = next((j for j in range(i1, i0 - 1, -1) if ends_sentence(all_words[j])), None)
+                    if prev is not None:
+                        end = all_words[prev]["end_us"] + tail             # or end on the last complete one
+            start, end = max(0, start), min(duration_us, end)
+            blks = [b for b in blocks if b["end_us"] > start and b["start_us"] < end]
+            blks = [dict(b, words=[w for w in b["words"] if start <= w["start_us"] and w["end_us"] <= end]) for b in blks]
+            blks = [dict(b, text=" ".join(w["text"] for w in b["words"])) for b in blks if b["words"]]
+        aligned.append((start, end, blks, seed_pattern))
+    proposals = aligned
 
     snapped = []
     for start, end, blks, seed_pattern in proposals:

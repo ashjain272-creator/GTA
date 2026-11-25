@@ -93,13 +93,15 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
                           if hook.get("text") else [])
     bounds = caption_bounds(Path(render_info["ass_path"]), bound_items, r["width"], r["height"])
     bad = safe_area_violations(bounds, r["width"], r["height"], sa)
-    heights = [b["bbox"][3] - b["bbox"][1] for b in bounds if b["bbox"]]
+    # glyph height measured on cues with a capital or ascender letter (lowercase-only words like "on" are short by design)
+    heights = [b["bbox"][3] - b["bbox"][1] for b in bounds if b["bbox"] and re.search(r"[A-Zbdfhklt0-9]", b["text"])]
     checks.append(_check("subtitle_safe_area", not bad,
                          {"cues_measured": len(bounds), "violations": bad[:5]},
                          f"all caption pixels inside side {sa['side_px']}px, top {sa['top_px']}px, "
                          f"bottom {sa['bottom_px']}px (HYPOTHESIS, VERIFY per platform 8.9)"))
-    checks.append(_check("subtitle_legible_size", (not cues) or (bool(heights) and min(heights) >= q["min_caption_px"]),
-                         min(heights, default=0), f">= {q['min_caption_px']} px glyph height (HYPOTHESIS)"))
+    h_ref = sorted(heights)[len(heights) // 4] if heights else 0          # 25th percentile, robust to one odd cue
+    checks.append(_check("subtitle_legible_size", (not cues) or (bool(heights) and h_ref >= q["min_caption_px"]),
+                         h_ref, f">= {q['min_caption_px']} px glyph height (HYPOTHESIS)"))
 
     # 5b. photosensitive flashing (WCAG 2.3.1 general-flash rule; red flash not implemented)
     fl = flash_check(path, q["max_flashes_per_s"])

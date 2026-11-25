@@ -77,7 +77,7 @@ def track(src: Path, start_s: float, dur_s: float, src_w: int, src_h: int, cfg: 
     for i in range(len(diffs)):
         r = rows_m[i] if active[i] else rows_c[i]
         ys.append(float((r * yy).sum() / r.sum() / AH) if r.sum() > 0 else 0.5)
-    third_person = camera == "third_person"
+    third_person = camera in ("third_person", "first_person")   # both keep the subject/crosshair near the centre
     cx, path, reacq = 0.5, [], 0
     max_step = f["max_speed_frac_per_s"] / AFPS
     half = wf / 2
@@ -89,7 +89,8 @@ def track(src: Path, start_s: float, dur_s: float, src_w: int, src_h: int, cfg: 
         else:
             target = 0.5 if third_person else cx
         if third_person:
-            target = 0.5 + (target - 0.5) * f["third_person_follow"]  # GTA-style chase camera: player near centre
+            follow = 0.0 if camera == "first_person" else f["third_person_follow"]   # crosshair is the centre; chase cam may drift a little
+            target = 0.5 + (target - 0.5) * follow
         if cut[i - 1] if i > 0 else False:
             cx = float(np.clip(target, half, 1 - half))               # a cut is already a jump: reframe at once
             reacq += 1
@@ -101,13 +102,15 @@ def track(src: Path, start_s: float, dur_s: float, src_w: int, src_h: int, cfg: 
     conc = float(np.median(m_frac[active])) if active.any() else 0.0
     con_ok = float(np.mean(c_frac >= f["min_concentration"]))
     active_share = float(active.mean())
-    if conc >= f["min_concentration"] and active_share >= f["min_active_share"]:
+    if camera == "first_person":
+        layout, reason = "tracked_crop", "first-person game: crop locked on the crosshair (screen centre)"
+    elif conc >= f["min_concentration"] and active_share >= f["min_active_share"]:
         layout, reason = "tracked_crop", f"motion concentrated: median {conc:.0%} fits a 9:16 window"
     elif con_ok >= 0.6:
         layout, reason = "tracked_crop", f"subject located by contrast in {con_ok:.0%} of frames"
     elif third_person:
-        layout, reason = "tracked_crop", ("third-person game: camera keeps the player near the centre, so a "
-                                          "centre-weighted crop is used despite spread motion")
+        layout, reason = "tracked_crop", (f"{camera.replace('_', '-')} game: the camera keeps the player/crosshair near "
+                                          "the centre, so a centre-weighted crop is used despite spread motion")
     else:
         layout, reason = "blur_fill", f"no trackable subject (motion fit {conc:.0%}, contrast fit {con_ok:.0%})"
     keyframes = [{"t": round(i / AFPS, 2), "cx": round(c, 4)} for i, c in enumerate(path)]
