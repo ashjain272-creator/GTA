@@ -248,3 +248,34 @@ Append-only. CHECKPOINT entries are safe resumption points.
 - **Next step:** the first real footage (B-09 network choice, then a link).
   Calibrate thresholds (music, framing, ranker weights) on it. Facecam layout
   is the next framing feature.
+
+## 2026-11-25: Night run (operator asleep; "iterate until genuinely perfect")  [MEDIA, EDIT, ML, QA]
+- The operator's YouTube test link could not be fetched from this cloud server:
+  YouTube answered HTTP 429 and then "Sign in to confirm you're not a bot"
+  (E-045). The system stopped by design (no evasion, AM-30). Working paths:
+  BLOCKERS B-09 (run on the Mac, a cookie file, or the original file).
+- Substitute test corpus, all public domain or Creative Commons (E-048):
+  Tears of Steel, America's Army 3, Xonotic duel, Luanti let's play,
+  Veloren 2.5 h stream. Every candidate was rendered, QA'd and inspected
+  frame by frame on contact sheets.
+- Defects found by inspection and fixed (each with a test):
+  real muzzle flashes failing WCAG → mitigation ladder and repair loop (E-047);
+  loudnorm missing targets on transient audio → deterministic loop (E-046);
+  captions too fast, past the end, fragments, weak line endings;
+  clips starting or ending mid-sentence (punctuated and unpunctuated speech, E-051);
+  first-person crop drifting off the crosshair; stream sidebar pulling the crop
+  off the game picture (E-050); ASR split tokens ("0" ".9");
+  refine-pass ASR hallucinations becoming hook text (E-052);
+  truncated hooks; silent build-ups (> 5 s before the payoff without speech);
+  machine review over-rating clips with a slow start or a weak item.
+- New: two-pass captions (ADR-0019), machine creative review (Appendix C proxies),
+  `scripts/clip_url.py` (one command: link or file → finished shorts in `out/`).
+
+### Self-critique
+1. No GTA footage has been processed. GTA-specific detectors (radio music R26,
+   cutscenes R27, other players' voices AM-18) are untested on real GTA audio.
+2. The machine review is a proxy. It has over-rated clips twice tonight; human
+   review stays mandatory before any publication (publish gate, L0).
+3. Wide centred UI text (e.g. a respawn line) can exceed a 9:16 window; no
+   zoom-out for it yet.
+4. Blur-fill is used for the film (no trackable subject); it is safe but small on a phone.
