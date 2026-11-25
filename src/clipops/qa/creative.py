@@ -45,7 +45,7 @@ def review(plan: dict, qa: dict, candidate: dict | None = None) -> dict:
     pay_out = (teaser_us + pay - main_start) if (pay and main_start is not None and pay >= main_start) else None
     firsts = [t for t in (first_word, pay_out) if t is not None]
     slow = ((min(firsts) - teaser_us) / 1e6) if firsts else 0.0
-    s = 5 - (longest > 2.0) - (longest > 3.0) - (dur > 45) - (dur < 8) - 2 * (slow > 6.0)
+    s = 5 - (longest > 2.0) - (longest > 3.0) - (dur > 45) - (dur < 8) - 2 * (slow > 6.0) - 2 * (slow > 10.0)
     out["pacing"] = {"score": _clamp(s), "evidence": f"duration {dur:.1f}s, longest pause {longest:.1f}s, "
                                                      f"first beat after {slow:.1f}s"}
 

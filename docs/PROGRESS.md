@@ -279,3 +279,28 @@ Append-only. CHECKPOINT entries are safe resumption points.
 3. Wide centred UI text (e.g. a respawn line) can exceed a 9:16 window; no
    zoom-out for it yet.
 4. Blur-fill is used for the film (no trackable subject); it is safe but small on a phone.
+
+### Final corpus pass (round 5)
+- 22 candidates rendered with every fix: 21 pass blocking QA; 1 rejected by the
+  music screen (Xonotic 510.8 s, music in 12.5 % of windows, fail-closed).
+- Machine review: 2 strong, 17 acceptable, 2 weak. Hand-picked set (contact
+  sheets inspected): Veloren 7467 s ("What the hell is that?"), Veloren 5332 s
+  (death, banner centred), Xonotic 7.9 s (lava death), Luanti 170 s,
+  Tears of Steel 196 s ("All systems, go!").
+- Left out on inspection: America's Army and the film's battle (blur-fill makes
+  the picture a small band on a phone); the film's opening (15 s of credits
+  before speech, rated "strong" by the machine review before the slow-start
+  penalty was raised).
+
+### CHECKPOINT 2026-11-25-d
+- **Done and verified:** 91 tests pass (full suite). All 5 shorts in the hand-picked set
+  pass blocking QA (1080×1920, −14 LUFS ±1.5, TP ≤ −1.5 dBTP, WCAG flash,
+  captions in the safe area, music screen).
+- **Half-finished:** nothing in code. The operator's YouTube link is not processed (B-09).
+- **Next step:** the operator runs `scripts/clip_url.py` on the Mac with the GTA
+  link (B-09 option 1), or supplies a cookie file or the original file. Then
+  calibrate the GTA detectors (radio music R26, cutscenes R27, other players'
+  voices AM-18) on that footage.
+- **Hazards:** the machine review is a proxy and has over-rated clips; human
+  review stays mandatory (L0). Blur-fill is small on phones; first-person games
+  without a registry entry fall back to it.
