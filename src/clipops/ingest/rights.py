@@ -46,14 +46,15 @@ def game_policy_entries(repo: Path, game: str | None) -> list[dict]:
 
 def build_record(repo: Path, path: Path, klass: str, *, game: str | None = None,
                  grant: dict | None = None, synthetic: bool = False, notes: str | None = None,
-                 platform: str = "file", origin_url: str | None = None) -> dict:
-    if klass in REFUSED:
-        raise RightsRefused(REFUSED[klass])
+                 platform: str = "file", origin_url: str | None = None,
+                 attestation: str | None = None) -> dict:
+    if klass == "F" or (klass == "E" and not (attestation and attestation.strip())):
+        raise RightsRefused(REFUSED[klass] + ("" if klass == "F" else "; or record your basis with --attest (AM-30)"))
     sid, digest = source_id_for(path)
     today = _dt.date.today().isoformat()
     policies = game_policy_entries(repo, game)
     monet = "unknown"
-    if synthetic:
+    if synthetic or klass == "E":
         monet = "no"
     elif policies and any(p["_monetisation_permitted"] is False for p in policies):
         monet = "no"
@@ -65,7 +66,7 @@ def build_record(repo: Path, path: Path, klass: str, *, game: str | None = None,
         "owner_verified_by_oauth": False, "grant": grant,
         "game_policies": [{k: v for k, v in p.items() if not k.startswith("_")} for p in policies],
         "third_party_content_flags": [], "monetisation_allowed": monet,
-        "synthetic_fixture": synthetic, "created_at": today, "last_reviewed": today, "notes": notes,
+        "synthetic_fixture": synthetic, "operator_attestation": attestation, "created_at": today, "last_reviewed": today, "notes": notes,
     }
     jsonschema.validate(rec, _schema(repo))
     return rec
@@ -85,9 +86,10 @@ def gate(repo: Path, src_dir: Path, allowed: list[str]) -> dict:
         jsonschema.validate(rec, _schema(repo))
     except jsonschema.ValidationError as e:
         raise RightsRefused(f"rights record invalid: {e.message}") from e
-    if rec["class"] in REFUSED:
+    if rec["class"] == "F" or (rec["class"] == "E" and not rec.get("operator_attestation")):
         raise RightsRefused(REFUSED[rec["class"]])
-    if rec["class"] not in set(allowed) & PRODUCTION_CLASSES_MAX:
+    production = PRODUCTION_CLASSES_MAX | ({"E"} if rec.get("operator_attestation") else set())
+    if rec["class"] not in set(allowed) & production:
         raise RightsRefused(f"class {rec['class']} not in allowed production classes {allowed}")
     exp = (rec.get("grant") or {}).get("expires")
     if exp and exp < _dt.date.today().isoformat():

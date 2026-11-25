@@ -61,6 +61,7 @@ def main(argv: list[str] | None = None) -> int:
     sa.add_argument("--grant", help="JSON file with grant details (required for class B/C)")
     sa.add_argument("--game")
     sa.add_argument("--notes")
+    sa.add_argument("--attest", help="class E only: your stated basis for using footage without permission (recorded as your responsibility)")
 
     sc = src.add_parser("classify", help="classify a URL; never downloads (class E path, spec 4.4)")
     sc.add_argument("url")
@@ -106,10 +107,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "source":
         grant = json.loads(Path(args.grant).read_text()) if args.grant else None
         if args.path.startswith(("http://", "https://")):
-            return _run(cfg, "source add (url)", lambda p, r: {"source_id": p.add_url(
-                args.path, args.declare_rights, game=args.game, grant=grant, notes=args.notes)})
+            return _run(cfg, "source add (url)", lambda p, r: {"source_ids": p.add_url(
+                args.path, args.declare_rights, game=args.game, grant=grant, notes=args.notes,
+                attestation=args.attest)})
         return _run(cfg, "source add", lambda p, r: {"source_id": p.add_source(
-            Path(args.path), args.declare_rights, game=args.game, grant=grant, notes=args.notes)})
+            Path(args.path), args.declare_rights, game=args.game, grant=grant, notes=args.notes,
+            attestation=args.attest)})
     if args.cmd == "ingest":
         return _run(cfg, "ingest", lambda p, r: p.ingest(args.source_id))
     if args.cmd == "analyse":

@@ -174,3 +174,15 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
 - **Not verified end to end:** YouTube is unreachable from the cloud
   environment (exact-host allowlists cannot cover YouTube's dynamic media
   hosts), so only a mock-downloader test exercises the flow (B-09).
+
+## ADR-0014 Acquisition scope after AM-30  [RIGHTS, SEC]
+- **Date:** 2026-11-25 · **Status:** Accepted
+- **Choice:** `source add <url> --declare-rights E --attest "<basis>"` is
+  accepted. Optional cookies come from an env-var path. `@channel` and
+  playlist URLs are accepted for class A/B with coverage, up to `max_items` per
+  run. `FORBIDDEN_KEYS` (proxy, source_address, impersonate, geo_bypass*,
+  cookiesfrombrowser, username, password) is asserted before every download.
+  Bot checks and DRM end the run with a policy error.
+- **Security note:** a cookie file is a live login credential. It must stay
+  outside the repo, and in cloud sessions it should come from a spare
+  account (R37).

@@ -32,8 +32,15 @@ def test_tampered_record_class_e_is_refused_by_gate(media, tmp_path):
     rec = rights.build_record(REPO, media, "A")
     rec["class"] = "E"
     rights.save_record(rec, tmp_path)
-    with pytest.raises(rights.RightsRefused, match="class E"):
-        rights.gate(REPO, tmp_path, ["A", "B", "C"])
+    with pytest.raises(rights.RightsRefused, match="class E|attestation|invalid"):
+        rights.gate(REPO, tmp_path, ["A", "B", "C", "E"])
+
+
+def test_attested_class_e_passes_gate_without_monetisation(media, tmp_path):
+    rec = rights.build_record(REPO, media, "E", attestation="commentary; fair-use claim")
+    assert rec["monetisation_allowed"] == "no"
+    rights.save_record(rec, tmp_path)
+    assert rights.gate(REPO, tmp_path, ["A", "B", "C", "E"])["class"] == "E"
 
 
 def test_class_b_requires_grant(media):

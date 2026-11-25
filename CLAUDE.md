@@ -21,9 +21,12 @@ be an ephemeral container: anything not pushed is lost (AMENDMENTS AM-02).
 ## The ten operating principles (spec 1.3, in priority order)
 1. Lawful, authorised access only. Never bypass auth, DRM, paywalls, rate
    limits or bot checks. Public is not permission. **Operator-approved
-   exception (AM-29, 2026-11-25):** a single YouTube video may be downloaded
-   with yt-dlp when its rights record is class A (owned) or B (written creator
-   permission). No cookies, logins, proxies or evasion; DRM is still refused.
+   exceptions (AM-29, AM-30):** YouTube videos may be downloaded with yt-dlp
+   for class A/B sources, and for class E when the operator records an
+   attestation (monetisation forced off). The operator's own cookie file may
+   be used. Channels/playlists only for class A or covering class B grants.
+   Still refused: DRM, proxies/IP rotation/impersonation, rate-limit or
+   bot-check evasion, class F.
 2. Honesty about capability. No stub may return success without doing the work.
 3. Quality over quantity. Publishing nothing is acceptable.
 4. Evidence over assertion. Tag claims VERIFIED / SECONDARY / MEASURED / ASSUMPTION.
@@ -36,14 +39,15 @@ be an ephemeral container: anything not pushed is lost (AMENDMENTS AM-02).
 10. Transformative contribution. Every short adds describable creative value.
 
 ## Never implement (spec 1.6)
-Protection/paywall/DRM/rate-limit/bot-check circumvention; downloading anything
-without a class A/B rights record; channel or playlist crawling; fake engagement of any kind;
+Protection/paywall/DRM/rate-limit/bot-check circumvention (proxies, IP rotation,
+TLS/browser impersonation); class E downloads without an operator attestation;
+channel or playlist crawling without class A/B rights; fake engagement of any kind;
 impersonation or misleading attribution; ToS-violating scraping; automated
 account creation; earnings or growth claims. Explain and offer the closest
 lawful alternative instead.
 
 ## Project-specific rules
-- Source rights classes A-F (spec 4.3). Class E/F never enter the pipeline.
+- Source rights classes A-F (spec 4.3). Class F never enters the pipeline; class E only with an operator attestation (AM-30).
 - Rockstar/GTA: non-commercial tolerance only. Monetisation is off unless a
   Take-Two licence record exists (AM-05, B-06). Detect in-game radio music
   (R26), standalone cutscenes and spoilers (R27), and third-party player voices (AM-18).

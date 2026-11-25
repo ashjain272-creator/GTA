@@ -21,13 +21,15 @@ resources:
 
 rights:
   # Source classes A-F per spec 4.3. Class E and F never enter the pipeline.
-  allowed_production_classes: [A, B, C]
+  allowed_production_classes: [A, B, C, E]   # E only with an operator attestation (AM-30); monetisation forced off
   require_game_policy_record: true
 
 acquire:                        # URL acquisition, class A/B only (AM-29)
   format: "bv*[height<=1080]+ba/b[height<=1080]"
   max_bytes_per_s: 5000000      # polite client; never evade rate limits
   sleep_between_requests_s: 1
+  max_items: 25                 # cap per channel/playlist run (class A/B only)
+  cookies_file_env: CLIPOPS_YOUTUBE_COOKIES_FILE   # optional: your own exported cookies (Netscape format), kept outside the repo
 
 publishing:
   # Autonomy levels per spec 11.6. The system never raises these itself.

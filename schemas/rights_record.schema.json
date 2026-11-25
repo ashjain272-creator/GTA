@@ -41,11 +41,14 @@
     "third_party_content_flags": {"type": "array", "items": {"type": "string"}},
     "monetisation_allowed": {"enum": ["yes", "no", "unknown"]},
     "synthetic_fixture": {"type": "boolean"},
+    "operator_attestation": {"type": ["string", "null"]},
     "created_at": {"type": "string"},
     "last_reviewed": {"type": "string"},
     "notes": {"type": ["string", "null"]}
   },
   "allOf": [
+    {"if": {"properties": {"class": {"const": "E"}}},
+     "then": {"required": ["operator_attestation"], "properties": {"operator_attestation": {"type": "string", "minLength": 3}}}},
     {"if": {"properties": {"class": {"const": "B"}}},
      "then": {"required": ["grant"], "properties": {"grant": {"type": "object", "required": ["document_ref", "scope"]}}}},
     {"if": {"properties": {"class": {"const": "C"}}},

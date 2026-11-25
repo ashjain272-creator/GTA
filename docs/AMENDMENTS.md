@@ -184,6 +184,25 @@ principles may be changed by the operator). Scope, as implemented in
   Rockstar monetisation restriction (AM-05) apply to acquired footage exactly
   as to files.
 
+**AM-30 · OPERATOR-REQUESTED WIDENING OF AM-29 (2026-11-25), PARTLY DECLINED.**
+The operator asked to also allow: links with no rights, DRM-protected videos,
+logins and cookies, proxies or rate-limit and bot-check evasion, and
+channel and playlist downloads.
+- **Adopted:** class E acquisition when the operator records an attestation
+  (their stated basis, stored in the rights record as their responsibility;
+  monetisation forced off); the operator's own exported cookie file, from
+  `$CLIPOPS_YOUTUBE_COOKIES_FILE`, kept outside the repo; channels and
+  playlists for class A, or class B grants covering them, capped by
+  `acquire.max_items`.
+- **Declined by the assistant:** DRM circumvention (unlawful in most
+  jurisdictions regardless of permission); proxies, IP rotation, TLS or
+  browser impersonation and other rate-limit or bot-check evasion
+  (circumvention of security controls). On a bot check the system stops and
+  reports.
+- **Unchanged:** the publish gate, the contribution test (AM-27), the
+  Rockstar monetisation restriction (AM-05) and the music screen apply to
+  acquired footage.
+
 ## 6. Document-level
 
 **AM-23 · CLARIFICATION · X1.** The spec (~394 KB as Markdown) cannot be held in

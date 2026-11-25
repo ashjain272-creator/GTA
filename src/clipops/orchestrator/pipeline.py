@@ -59,11 +59,12 @@ class Pipeline:
     # ------------------------------------------------------------ registration
     def add_source(self, path: Path, klass: str, *, game: str | None, grant: dict | None,
                    synthetic: bool = False, notes: str | None = None,
-                   platform: str = "file", origin_url: str | None = None) -> str:
+                   platform: str = "file", origin_url: str | None = None,
+                   attestation: str | None = None) -> str:
         with self.report.stage("source_add") as st:
             rec = rights_mod.build_record(self.repo, path.resolve(), klass, game=game, grant=grant,
                                           synthetic=synthetic, notes=notes, platform=platform,
-                                          origin_url=origin_url)
+                                          origin_url=origin_url, attestation=attestation)
             d = source_dir(self.work, rec["source_id"])
             rights_mod.save_record(rec, d)
             st["source_id"] = rec["source_id"]
@@ -73,15 +74,19 @@ class Pipeline:
             return rec["source_id"]
 
     def add_url(self, url: str, klass: str, *, game: str | None, grant: dict | None,
-                notes: str | None = None) -> str:
+                notes: str | None = None, attestation: str | None = None) -> list[str]:
         from ..ingest.acquire import acquire
         with self.report.stage("acquire") as st:
-            got = acquire(url, klass, grant, self.cfg, data_path(self.cfg, "sources") / "url")
-            st["video_id"] = got["provenance"]["video_id"]
-            self.report.warn("acquire", "tos_risk", got["provenance"]["basis"])
-        note = f"acquired: {got['provenance']}" + (f"; {notes}" if notes else "")
-        return self.add_source(got["path"], klass, game=game, grant=grant, notes=note,
-                               platform=got["provenance"]["platform"], origin_url=url)
+            got = acquire(url, klass, grant, self.cfg, data_path(self.cfg, "sources") / "url", attestation)
+            st["items"] = len(got["items"])
+            self.report.warn("acquire", "tos_risk", got["items"][0]["provenance"]["basis"])
+        ids = []
+        for it in got["items"]:
+            note = f"acquired: {it['provenance']}" + (f"; {notes}" if notes else "")
+            ids.append(self.add_source(it["path"], klass, game=game, grant=grant, notes=note,
+                                       platform=it["provenance"]["platform"], origin_url=it["provenance"]["url"],
+                                       attestation=attestation))
+        return ids
 
     def _src(self, source_id: str) -> tuple[Path, dict, Path]:
         d = self.work / source_id

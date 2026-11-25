@@ -214,3 +214,11 @@ Append-only. CHECKPOINT entries are safe resumption points.
 ### CHECKPOINT 2026-11-25-a
 - **Next step:** operator chooses B-09 (a) or (b); then acquire the operator's
   first link and run the full pipeline on real footage.
+
+## 2026-11-25: AM-30 acquisition widening  [RIGHTS, SEC]
+- Adopted: class E with attestation, own cookies, rights-covered channels and
+  playlists. Declined: DRM, evasion. ADR-0014, R37, R38. 67 tests pass.
+
+### CHECKPOINT 2026-11-25-b
+- **Next step:** unchanged. The operator must choose B-09 (unrestricted cloud
+  network vs. Mac) before any real download.
