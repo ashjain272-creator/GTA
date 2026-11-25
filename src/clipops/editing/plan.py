@@ -12,6 +12,12 @@ import re
 from .hooks import EXCLAIM, make_hook
 
 PUNCT_END = re.compile(r"[.!?,;:]$")
+PROFANITY = re.compile(r"\b(fuck\w*|shit\w*|bitch\w*|cunt\w*|asshole\w*|motherfuck\w*|dick\w*|bastard\w*)\b", re.I)
+
+
+def mask_profanity(text: str) -> str:
+    """Brand safety (spec AM-20): keep the first letter, mask the rest ('f***')."""
+    return PROFANITY.sub(lambda m: m.group(0)[0] + "*" * (len(m.group(0)) - 1), text)
 
 
 # ----------------------------------------------------------------------------- timeline
@@ -104,6 +110,8 @@ def caption_cues(words: list[dict], fmap, style: dict, scfg: dict) -> list[dict]
         if a is None or b is None:
             continue
         text = w["text"].upper() if c["case"] == "upper" else w["text"]
+        if scfg.get("mask_profanity", True):
+            text = mask_profanity(text)
         mapped.append({"text": text, "start_us": a, "end_us": max(b, a + 80_000), "confidence": w["confidence"],
                        "stress": bool(EXCLAIM.search(w["text"]))})
     cues, cur = [], []
@@ -114,9 +122,17 @@ def caption_cues(words: list[dict], fmap, style: dict, scfg: dict) -> list[dict]
                          "text": " ".join(x["text"] for x in cur), "words": list(cur),
                          "min_confidence": min(x["confidence"] for x in cur)})
             cur.clear()
+    weak_end = {"the", "a", "an", "to", "of", "and", "or", "but", "is", "are", "my", "your", "in", "on",
+                "at", "for", "with", "i", "we", "so"}
     for w in mapped:
-        if cur and (len(cur) >= max_w or w["end_us"] - cur[0]["start_us"] > max_us or w["start_us"] - cur[-1]["end_us"] > 700_000):
-            flush()
+        if cur:
+            gap = w["start_us"] - cur[-1]["end_us"]
+            last = re.sub(r"[^a-z']", "", cur[-1]["text"].lower())
+            full = len(cur) >= max_w and not (last in weak_end and len(cur) < max_w + 2)   # don't end on "the"
+            starter = re.sub(r"[^a-z']", "", w["text"].lower()) in {"what", "how", "why", "oh", "wait", "look", "okay", "ok", "yes", "no"}
+            if full or w["end_us"] - cur[0]["start_us"] > max_us or gap > 700_000 or (gap >= 250_000 and len(cur) >= 2) \
+                    or (starter and len(cur) >= 2 and last not in weak_end and last not in ("no", "oh")):
+                flush()
         cur.append(w)
         if PUNCT_END.search(w["text"]):
             flush()
@@ -276,6 +292,8 @@ def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, 
     out_dur = main_dur + freeze
     cues = caption_cues(words, fmap, st, cfg["render"]["subtitles"])
     cap_style = dict(cfg["render"]["subtitles"]) | st["caption"]
+    # wrap inside the safe area with room for the 18% word pop
+    cap_style["margin_h"] = max(cap_style.get("margin_h", 80), cfg["qa"]["safe_area"]["side_px"] + 40)
     cp = cfg["caption_placement"]
     H = cfg["render"]["height"]
     sy = framing.get("subject_y", 0.5)
@@ -289,6 +307,9 @@ def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, 
     zooms = zoom_events(st, candidate, words, fmap, main_dur, cfg)
     sfx, sfx_notes = sfx_events(st, candidate, words_out, zooms, segs, fmap, main_dur, cfg)
     hook = make_hook(st["hook"]["device"], words, candidate.get("signals", {}).get("payoff_us"), game)
+    if cfg["render"]["subtitles"].get("mask_profanity", True):
+        hook["text"] = mask_profanity(hook["text"])
+    profane = len(PROFANITY.findall(" ".join(w["text"] for w in words)))
     hook["start_us"], hook["end_us"] = 0, int(cfg["edit"]["hook_duration_s"] * 1e6) if hook["text"] else 0
     contribution = []
     if any(s["role"] == "teaser" for s in segs):
@@ -322,6 +343,8 @@ def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, 
         "hook": hook,
         "grade": st.get("grade", {}),
         "music_covered_by_licence": music_covered,
+        "brand_safety": {"profanity_count": profane, "captions_masked": bool(cfg["render"]["subtitles"].get("mask_profanity", True)),
+                         "note": "audio is not bleeped; profanity in speech may still limit ad suitability" if profane else "clean"},
         "flash_mitigation": flash_mitigation,
         "black_trim": black_trim,
         "freeze_end_us": freeze,

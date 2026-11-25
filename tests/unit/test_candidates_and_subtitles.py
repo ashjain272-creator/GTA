@@ -127,3 +127,36 @@ def test_impact_followed_by_reaction_outranks_flat_speech():
     assert top["boundaries"]["start_us"] >= 20_000_000, [c["boundaries"] for c in ranked]
     assert top["signals"]["impact_score"] >= 0.5 and top["signals"]["reaction"] > 0
     assert top["signals"]["setup_present"] is True
+
+
+def test_action_without_speech_becomes_a_candidate():
+    ev = {"unscreened": False, "frames": [{"t_us": int(t * 1e6), "music": 0.0, "speech": 0.0,
+                                           "gunshot": 0.7 if 30 <= t <= 33 else 0.0} for t in [x * 0.5 for x in range(0, 120)]]}
+    curve = [(t / 10, -18.0 if 290 <= t <= 340 else -30.0) for t in range(600)]
+    res = _gen([W("hello", 1, 1.3), W("there.", 1.4, 1.8)], curve=curve, ovr_events=ev, min_viability=0.0)
+    event = [c for c in res["candidates"] if c["seed"]["pattern"] == "event_cluster"]
+    assert event, "gunfire with no speech must still produce a candidate"
+    b = event[0]["boundaries"]
+    assert b["start_us"] <= 30_000_000 <= b["end_us"]
+
+
+def test_clips_start_and_end_on_sentence_boundaries():
+    words = ([W("the", 0.5, 0.7), W("end.", 0.8, 1.1)] +
+             [W(x, 3 + i * 0.4, 3.3 + i * 0.4) for i, x in enumerate("So here is my plan for the bridge.".split())] +
+             [W(x, 7 + i * 0.4, 7.3 + i * 0.4) for i, x in enumerate("Watch me jump it now and".split())] +
+             [W(x, 10 + i * 0.4, 10.3 + i * 0.4) for i, x in enumerate("then we celebrate.".split())])
+    res = _gen(words, min_viability=0.0, max_candidates_per_source=10)
+    for c in res["candidates"]:
+        first = c["transcript_excerpt"].split()[0]
+        assert first[0].isupper() or first in ("the",) and False, c["transcript_excerpt"]
+        assert c["transcript_excerpt"].rstrip()[-1] in ".!?", c["transcript_excerpt"]
+
+
+def test_licence_covered_music_passes_gate():
+    words = [W(f"w{i}", i * 0.5, i * 0.5 + 0.4) for i in range(30)]
+    music = {"unscreened": False, "frames": [{"t_us": int(t * 1e6), "music": 0.9} for t in range(0, 20)]}
+    cfg = copy.deepcopy(CFG)
+    res = generate("src_0123456789abcdef", 60_000_000, transcript(words), [(i / 10, -20.0) for i in range(600)], [],
+                   {"p50_lufs": -25.0}, {"class": "C", "grant": {"document_ref": "cc-by", "covers_audio": True}}, cfg, events=music)
+    gates = [g for c in res["candidates"] for g in c["gates"] if g["name"] == "music_screen"]
+    assert gates and all(g["passed"] and "covered by the source licence" in g["reason"] for g in gates)

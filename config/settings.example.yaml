@@ -141,6 +141,7 @@ render:
     target_cps: 17              # extend display towards this reading speed when there is room
     max_cps: 22                 # faster than this → merge with the next cue when they fit
     max_cue_chars: 34
+    mask_profanity: true        # brand safety: captions show "f***"; the spoken audio is unchanged
     margin_v: 420               # px from bottom; keeps captions above platform UI (HYPOTHESIS, 8.9 VERIFY)
     margin_h: 80
     outline: 4

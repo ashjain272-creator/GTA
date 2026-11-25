@@ -85,13 +85,24 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
             def lead_in(j):                                                # lead-in that never reaches into the previous word
                 prev_end = all_words[j - 1]["end_us"] + 50_000 if j > 0 else 0
                 return max(prev_end, all_words[j]["start_us"] - lead)
-            if k != i0 and (k == 0 or ends_sentence(all_words[k - 1])):
+            def starts_sentence(j):
+                if j == 0:
+                    return all_words[0]["text"][:1].isupper()
+                if ends_sentence(all_words[j - 1]):
+                    return True
+                # ASR often omits the full stop before a pause: a capitalised word after >= 1 s of silence starts anew
+                return all_words[j]["text"][:1].isupper() and all_words[j]["start_us"] - all_words[j - 1]["end_us"] >= 1_000_000
+            if k != i0 and starts_sentence(k):
                 start = min(start, lead_in(k))                             # pull back to include the sentence start
             elif k != i0:                                                  # can't reach a sentence start: skip forward
                 nxt = next((j for j in range(i0, i1 + 1) if j > 0 and ends_sentence(all_words[j - 1])), None)
                 if nxt is not None:
                     start = lead_in(nxt)
-            elif k == i0 and i0 > 0:
+            elif not starts_sentence(i0):              # window opens on a fragment (e.g. recording began mid-sentence)
+                nxt = next((j for j in range(i0 + 1, i1 + 1) if starts_sentence(j)), None)
+                if nxt is not None:
+                    start = lead_in(nxt)
+            elif i0 > 0:
                 start = max(start, lead_in(i0))
             if not ends_sentence(all_words[i1]):
                 k = i1
@@ -148,8 +159,8 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
         react_words = [w for w in words if payoff_us < w["start_us"] <= payoff_us + 3_000_000]
         reaction = _clip(len(EXCLAIM.findall(" ".join(w["text"] for w in react_words))) / 1.0 + laugh)
         rel_payoff = (payoff_us - start) / max(end - start, 1)
-        setup_present = 1.0 if any(re.search(r"\b(watch|going to|gonna|let me|try)\b", w["text"], re.I)
-                                   for w in words if w["start_us"] < payoff_us) else 0.0
+        pre_text = " ".join(w["text"] for w in words if w["start_us"] < payoff_us)
+        setup_present = 1.0 if re.search(r"\b(watch|going to|gonna|let me|try|check this)\b", pre_text, re.I) else 0.0
         hook = _clip(0.4 * density + 0.4 * _clip(len(EXCLAIM.findall(first_words)) / 1.0) + 0.3 * setup_present)
         payoff = _clip(0.35 * intensity + 0.35 * impact_score / 0.5 + 0.3 * reaction
                        - (0.3 if rel_payoff < 0.15 else 0.0))       # payoff in the first moments has no build-up

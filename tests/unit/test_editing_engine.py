@@ -135,3 +135,24 @@ def test_tracker_follows_a_moving_subject(tmp_path):
     assert late - early > 0.35, (early, late)              # crop moved right with the subject
     box_x = (60 + 5.5 * 180 + 60) / 1280                    # subject centre near the end
     assert abs(late - box_x) < fr["window_fraction"] / 2    # subject inside the crop window
+
+
+@pytest.mark.media
+def test_first_person_crop_stays_on_the_crosshair(tmp_path):
+    src = tmp_path / "fp.mp4"
+    run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=0x404040:s=1280x720:r=30:d=4",
+         "-f", "lavfi", "-i", "color=c=yellow:s=120x80:r=30:d=4",
+         "-filter_complex", "[0][1]overlay=x='60+t*250':y=300:shortest=1", "-c:v", "libx264", "-qp", "0", str(src)])
+    fr = framing_mod.track(src, 0, 4, 1280, 720, CFG, camera="first_person")
+    assert fr["layout"] == "tracked_crop" and "crosshair" in fr["reason"]
+    assert all(abs(k["cx"] - 0.5) < 1e-6 for k in fr["keyframes"])
+
+
+@pytest.mark.media
+def test_flash_mitigation_is_chosen_for_a_flashing_window(tmp_path):
+    from clipops.qa.window_checks import source_flash_risk
+    src = tmp_path / "flash.mp4"
+    run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=black:s=320x180:r=30:d=3", "-vf",
+         "geq=lum='if(lt(mod(T*8,1),0.5),235,16)':cb=128:cr=128,format=yuv420p", "-c:v", "libx264", "-qp", "0", str(src)])
+    r = source_flash_risk(src, 0, 3, CFG)
+    assert r["risk"] and r["mitigation"] and r["mitigation"]["threshold"] <= 0.5
