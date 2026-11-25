@@ -111,11 +111,14 @@ def render(plan: dict, src: Path, out_dir: Path, cfg: dict, src_w: int, src_h: i
     if plan["zooms"]:
         vchain += (f"zoompan=z='{zoom_expr(plan['zooms'])}':x='iw/2-(iw/zoom/2)':y='(ih-ih/zoom)*0.46':"
                    f"d=1:s={W}x{H}:fps={fps},")
+    fm = plan.get("flash_mitigation")
+    if fm:
+        vchain += f"photosensitivity=f={fm['frames']}:t={fm['threshold']},"   # WCAG 2.3.1 remedy (spec 4.9)
     vchain += f"eq=contrast={g.get('contrast', 1.0)}:saturation={g.get('saturation', 1.0)},"
     vchain += f"subtitles=filename='{_filter_path(ass_path)}':fontsdir='{_filter_path(repo / 'assets' / 'fonts')}',"
     if freeze > 0:
         vchain += f"tpad=stop_mode=clone:stop_duration={freeze:.3f},"
-    vchain += "setpts=N/FRAME_RATE/TB,format=yuv420p,setsar=1[v]"   # regular, monotonic timestamps (no fps filter: it stalls after zoompan)
+    vchain += f"setpts=N/({fps}*TB),format=yuv420p,setsar=1[v]"   # explicit rate: FRAME_RATE is unknown after a 24→30 fps concat
     parts.append(vchain)
     parts.append(f"[acat]apad=pad_dur={freeze:.3f}[astem]" if freeze > 0 else "[acat]anull[astem]")
     mezz = out_dir / f"{short_id}.mezz.mkv"

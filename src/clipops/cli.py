@@ -41,6 +41,10 @@ def _run(cfg: dict, purpose: str, fn) -> int:
     except StageFailed as e:
         print(f"FAILED: {e}", file=sys.stderr)
         status, code = "failed", 2
+    except Exception as e:  # noqa: BLE001 - a bug: record it in the run report, then re-raise for the traceback
+        rep.warn("cli", "unhandled_exception", repr(e)[:500])
+        rep.finish(reports, "bug")
+        raise
     path = rep.finish(reports, status)
     print(f"run report: {path}", file=sys.stderr)
     return code

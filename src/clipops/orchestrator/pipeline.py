@@ -28,7 +28,7 @@ from ..storage.artefacts import read_json, source_dir, write_json
 
 # Bump a stage's version whenever its implementation changes output, so cached
 # artefacts are invalidated (resumability must never serve stale results).
-STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "events": 1, "cands": 5}
+STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "events": 1, "cands": 7}
 
 
 def _key(*parts) -> str:
@@ -79,7 +79,8 @@ class Pipeline:
         with self.report.stage("acquire") as st:
             got = acquire(url, klass, grant, self.cfg, data_path(self.cfg, "sources") / "url", attestation)
             st["items"] = len(got["items"])
-            self.report.warn("acquire", "tos_risk", got["items"][0]["provenance"]["basis"])
+            if got["items"][0]["provenance"]["platform"] == "youtube":
+                self.report.warn("acquire", "tos_risk", got["items"][0]["provenance"]["basis"])
         ids = []
         for it in got["items"]:
             note = f"acquired: {it['provenance']}" + (f"; {notes}" if notes else "")
@@ -202,7 +203,7 @@ class Pipeline:
                              f"ranking uses {MODEL_VERSION}: unvalidated, uncertainty reported high")
             key = _key("cands", STAGE_VERSIONS["cands"], a["transcript"].get("_input_key"), a["audio"].get("_input_key"),
                        a["scenes"].get("_input_key"), a["events"].get("_input_key"), a["events"].get("unscreened"),
-                       self.cfg["candidates"], self.cfg["analysis"], rec["class"])
+                       self.cfg["candidates"], self.cfg["analysis"], rec["class"], rec.get("grant"))
             if (hit := _cached(d / "candidates.json", key)):
                 st["status"] = "cached"
                 return hit
@@ -229,7 +230,11 @@ class Pipeline:
             cand = pool[0]
             transcript = read_json(d / "transcript.json") if (d / "transcript.json").is_file() else {"segments": []}
             prof = styles_mod.moment_profile(cand, events)
-            sel = styles_mod.select_style(self.repo, self.cfg, prof, force=style,
+            from ..qa.window_checks import black_edges, source_flash_risk
+            bb = cand["boundaries"]
+            flash = source_flash_risk(src, bb["start_us"] / 1e6, (bb["end_us"] - bb["start_us"]) / 1e6, self.cfg)
+            black = black_edges(src, bb["start_us"], bb["end_us"])
+            sel = styles_mod.select_style(self.repo, self.cfg, prof, force=style, flash_risk=flash["risk"],
                                           recent=None if use_history else [])
             b = cand["boundaries"]
             v = probe["video"]
@@ -245,7 +250,12 @@ class Pipeline:
                                    cut_times_s=[c["time_us"] / 1e6 for c in self.analyse(source_id)["scenes"]["cuts"]])
             # keyframes are relative to the window start, which is also the render input start
             game = (rec.get("game_policies") or [{}])[0].get("game")
-            p = make_plan(cand, transcript, self.cfg, style_sel=sel, framing=fr, game=game)
+            p = make_plan(cand, transcript, self.cfg, style_sel=sel, framing=fr, game=game,
+                          music_covered=bool((rec.get("grant") or {}).get("covers_audio")),
+                          flash_mitigation=flash["mitigation"], black_trim=black)
+            if flash["risk"]:
+                self.report.warn("plan", "flash_mitigation", f"source window flashes {flash['max_flashes_per_s']}/s: "
+                                 f"photosensitivity filter applied {flash['mitigation']}")
             st.update(plan_id=p["plan_id"], style=sel["name"], layout=fr["layout"],
                       zooms=len(p["zooms"]), sfx=len(p["sfx"]), structure=p["structure"]["name"])
             if fr["layout"] == "blur_fill":
@@ -256,23 +266,39 @@ class Pipeline:
             return p
 
     def render_and_qa(self, source_id: str, plan: dict) -> tuple[dict, dict]:
+        """Render, inspect, and repair what can be repaired automatically (spec 10.5 repair loop)."""
         d, _, src = self._src(source_id)
-        with self.report.stage("render") as st:
-            v = self.ingest(source_id)["video"]
-            info = render(plan, src, data_path(self.cfg, "renders") / source_id, self.cfg, v["width"], v["height"])
-            st["short_id"] = info["short_id"]
-            write_json(d / "renders" / f"{info['short_id']}.json", info)
-            self.report.artefact("render", Path(info["path"]))
-        with self.report.stage("qa") as st:
-            qa = run_qa(info, plan, self.cfg, d / "qa")
-            write_json(d / "qa" / f"{info['short_id']}.json", qa)
-            st["passed"], st["failed"] = qa["passed"], qa["failed"]
-            if not qa["passed"]:
-                st["status"] = "failed_checks"
-            self.report.data["qa_summary"] = {"short_id": qa["short_id"], "passed": qa["passed"],
-                                              "failed": qa["failed"], "review_flags": qa["review_flags"],
-                                              "publishable": qa["publishable"]}
-            for flag in qa["review_flags"]:
-                self.report.operator_action(f"Review {qa['short_id']}: {flag}")
-            self.report.artefact("contact_sheet", Path(qa["contact_sheet"]))
+        v = self.ingest(source_id)["video"]
+        ladder = self.cfg["flash_mitigation"]["ladder"]
+        repairs = []
+        for attempt in range(len(ladder) + 1):
+            with self.report.stage("render") as st:
+                info = render(plan, src, data_path(self.cfg, "renders") / source_id, self.cfg, v["width"], v["height"])
+                st["short_id"] = info["short_id"]
+                write_json(d / "renders" / f"{info['short_id']}.json", info)
+            with self.report.stage("qa") as st:
+                qa = run_qa(info, plan, self.cfg, d / "qa")
+                st["passed"], st["failed"] = qa["passed"], qa["failed"]
+            if "photosensitive_flash" in qa["failed"]:
+                cur = plan.get("flash_mitigation") or {}
+                nxt = next(([f, t] for f, t in ladder if not cur or t < cur.get("threshold", 9)), None)
+                if nxt:
+                    plan["flash_mitigation"] = {"frames": nxt[0], "threshold": nxt[1]}
+                    repairs.append({"failed": "photosensitive_flash", "action": f"photosensitivity f={nxt[0]} t={nxt[1]}"})
+                    self.report.warn("qa", "repair", repairs[-1]["action"])
+                    continue
+            break
+        qa["repairs"] = repairs
+        plan["qa_repairs"] = repairs
+        write_json(d / "qa" / f"{info['short_id']}.json", qa)
+        write_json(d / "plans" / f"{plan['plan_id']}.json", plan)
+        self.report.artefact("render", Path(info["path"]))
+        if not qa["passed"]:
+            self.report.data["stages"][-1]["status"] = "failed_checks"
+        self.report.data["qa_summary"] = {"short_id": qa["short_id"], "passed": qa["passed"],
+                                          "failed": qa["failed"], "review_flags": qa["review_flags"],
+                                          "publishable": qa["publishable"], "repairs": repairs}
+        for flag in qa["review_flags"]:
+            self.report.operator_action(f"Review {qa['short_id']}: {flag}")
+        self.report.artefact("contact_sheet", Path(qa["contact_sheet"]))
         return info, qa

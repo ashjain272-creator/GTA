@@ -78,8 +78,9 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
     out_of_range = [c for c in cues if c["end_us"] / 1e6 > dur + 0.05 or c["start_us"] < 0]
     cps = [len(c["text"]) / max((c["end_us"] - c["start_us"]) / 1e6, 0.05) for c in cues]
     low_conf = [c["text"] for c in cues if c["min_confidence"] < 0.5]
-    checks.append(_check("subtitle_timing", bool(cues) and not out_of_range, f"{len(cues)} cues, {len(out_of_range)} out of range",
-                         ">=1 cue, all inside clip"))
+    has_speech = bool(cues)
+    checks.append(_check("subtitle_timing", not out_of_range, f"{len(cues)} cues, {len(out_of_range)} out of range",
+                         "all cues inside clip" + ("" if has_speech else " (no speech in this clip: no captions needed)")))
     checks.append(_check("subtitle_reading_speed", max(cps, default=0) <= 25.0, round(max(cps, default=0), 1),
                          "<= 25 chars/s (HYPOTHESIS, spec 8.10)"))
     checks.append(_check("subtitle_confidence", not low_conf, low_conf or "all cues >= 0.5",
@@ -97,7 +98,7 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
                          {"cues_measured": len(bounds), "violations": bad[:5]},
                          f"all caption pixels inside side {sa['side_px']}px, top {sa['top_px']}px, "
                          f"bottom {sa['bottom_px']}px (HYPOTHESIS, VERIFY per platform 8.9)"))
-    checks.append(_check("subtitle_legible_size", bool(heights) and min(heights) >= q["min_caption_px"],
+    checks.append(_check("subtitle_legible_size", (not cues) or (bool(heights) and min(heights) >= q["min_caption_px"]),
                          min(heights, default=0), f">= {q['min_caption_px']} px glyph height (HYPOTHESIS)"))
 
     # 5b. photosensitive flashing (WCAG 2.3.1 general-flash rule; red flash not implemented)
@@ -111,8 +112,10 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
         # screen the source-audio stem: registered SFX added by the edit are licensed and excluded
         ev = tag(Path(render_info.get("stem_path") or path), cfg)
         mf = music_fraction(ev, 0, int(dur * 1e6), cfg["analysis"]["music_threshold"])
-        checks.append(_check("music_screen", mf <= cfg["analysis"]["max_music_fraction"], round(mf, 3),
-                             f"<= {cfg['analysis']['max_music_fraction']} share of windows with music"))
+        covered = bool(plan.get("music_covered_by_licence"))
+        checks.append(_check("music_screen", covered or mf <= cfg["analysis"]["max_music_fraction"], round(mf, 3),
+                             f"<= {cfg['analysis']['max_music_fraction']} share of windows with music"
+                             + (" (music covered by the source licence)" if covered else "")))
     except StageFailed as e:
         checks.append(_check("music_screen", False, f"unscreened: {e.code}", "screen must run (fail closed)"))
 

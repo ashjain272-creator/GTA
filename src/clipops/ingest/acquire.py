@@ -29,6 +29,7 @@ from ..runreport import StageFailed
 from .classify import classify_url
 
 SINGLE = {("youtube", "video"), ("youtube", "short")}
+VIDEO_EXT = (".mp4", ".mov", ".mkv", ".webm", ".ogv", ".m4v", ".avi")
 MULTI = {("youtube", "channel"), ("youtube", "playlist")}
 
 
@@ -88,8 +89,60 @@ def check_preconditions(url: str, klass: str, grant: dict | None, attestation: s
     return c
 
 
+def is_direct_file(url: str) -> bool:
+    from urllib.parse import urlparse
+    return urlparse(url).path.lower().endswith(VIDEO_EXT) and classify_url(url)["platform"] not in ("youtube", "twitch")
+
+
+def acquire_direct(url: str, klass: str, grant: dict | None, cfg: dict, out_dir: Path) -> dict:
+    """Plain HTTPS download of a video file the operator has rights to (owned, permitted or licensed).
+
+    For Drive/Dropbox share links and openly licensed archives (e.g. Wikimedia Commons). Class C
+    needs a licence grant (document_ref = licence URL, attribution). No auth, no evasion.
+    """
+    import hashlib
+    import urllib.request
+    from urllib.parse import unquote, urlparse
+    if klass not in ("A", "B", "C"):
+        raise StageFailed("rights_refused", "policy", f"direct downloads need class A, B or C (got {klass})")
+    if klass in ("B", "C") and not (grant and grant.get("document_ref")):
+        raise StageFailed("grant_missing", "policy", f"class {klass} needs a grant/licence file with document_ref")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    name = unquote(Path(urlparse(url).path).name).replace(" ", "_")
+    dest = out_dir / name
+    a = cfg["acquire"]
+    req = urllib.request.Request(url, headers={"User-Agent": a["user_agent"]})
+    h = hashlib.sha256()
+    total = 0
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r, open(dest.with_suffix(dest.suffix + ".part"), "wb") as f:
+            ctype = r.headers.get("Content-Type", "")
+            if not (ctype.startswith(("video/", "application/octet-stream", "application/ogg"))):
+                raise StageFailed("not_video", "data", f"server returned {ctype!r}, not a video file")
+            while chunk := r.read(1 << 20):
+                total += len(chunk)
+                if total > a["max_bytes"]:
+                    raise StageFailed("too_large", "config", f"file exceeds acquire.max_bytes ({a['max_bytes']})")
+                h.update(chunk)
+                f.write(chunk)
+    except StageFailed:
+        dest.with_suffix(dest.suffix + ".part").unlink(missing_ok=True)
+        raise
+    except Exception as e:  # noqa: BLE001
+        dest.with_suffix(dest.suffix + ".part").unlink(missing_ok=True)
+        raise StageFailed("download_failed", "transient", str(e)[:300]) from e
+    dest.with_suffix(dest.suffix + ".part").replace(dest)
+    return {"items": [{"path": dest, "provenance": {
+        "url": url, "requested_url": url, "platform": "other", "video_id": None, "title": name,
+        "bytes": total, "sha256": h.hexdigest(), "downloader": "urllib (direct file)",
+        "downloaded_at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+        "basis": f"class {klass}" + (f"; licence {grant.get('document_ref')}" if grant else "")}}]}
+
+
 def acquire(url: str, klass: str, grant: dict | None, cfg: dict, out_dir: Path,
             attestation: str | None = None) -> dict:
+    if is_direct_file(url):
+        return acquire_direct(url, klass, grant, cfg, out_dir)
     c = check_preconditions(url, klass, grant, attestation)
     try:
         import yt_dlp

@@ -35,8 +35,8 @@ def best_quote(words: list[dict], payoff_us: int | None, max_words: int = 8) -> 
     for sent in _sentences(words):
         text = _clean(" ".join(w["text"] for w in sent))
         n = len(sent)
-        if n == 0 or n > max_words + 4:
-            continue
+        if n < 3 or n > max_words + 4 or not re.search(r"[.!?]$", sent[-1]["text"]):
+            continue                                   # quotes must be complete sentences, not fragments
         score = 1.5 * len(EXCLAIM.findall(text)) + (1.0 if 2 <= n <= max_words else 0.0)
         if payoff_us is not None:
             dist = abs(sent[0]["start_us"] - payoff_us) / 1e6
@@ -49,7 +49,7 @@ def best_quote(words: list[dict], payoff_us: int | None, max_words: int = 8) -> 
 
 def setup_line(words: list[dict], payoff_us: int | None) -> str | None:
     """The speaker's own statement of intent before the payoff (e.g. 'I am going to jump the car...')."""
-    pre = [s for s in _sentences(words) if payoff_us is None or s[-1]["end_us"] <= payoff_us]
+    pre = [s for s in _sentences(words) if len(s) >= 3 and (payoff_us is None or s[-1]["end_us"] <= payoff_us)]
     intent = [s for s in pre if re.search(r"\b(going to|gonna|watch|let me|try|i'?ll)\b", " ".join(w["text"] for w in s), re.I)]
     pick = (intent or pre or [None])[-1]
     return _clean(" ".join(w["text"] for w in pick)) if pick else None

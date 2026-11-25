@@ -121,11 +121,51 @@ def caption_cues(words: list[dict], fmap, style: dict, scfg: dict) -> list[dict]
         if PUNCT_END.search(w["text"]):
             flush()
     flush()
-    for a, b in zip(cues, cues[1:]):
-        if 0 < b["start_us"] - a["end_us"] < 250_000:
-            a["end_us"] = b["start_us"]
-        a["end_us"] = min(a["end_us"], b["start_us"])
+    # merge a too-fast cue with its neighbour when they run together and still fit on screen
+    merged: list[dict] = []
+    for c in cues:
+        if merged:
+            prev = merged[-1]
+            fast = len(prev["text"]) / max((c["start_us"] - prev["start_us"]) / 1e6, 0.05) > scfg.get("max_cps", 22)
+            if fast and c["start_us"] - prev["end_us"] < 300_000 and len(prev["text"]) + len(c["text"]) + 1 <= scfg.get("max_cue_chars", 34):
+                prev.update(end_us=c["end_us"], text=prev["text"] + " " + c["text"], words=prev["words"] + c["words"],
+                            min_confidence=min(prev["min_confidence"], c["min_confidence"]))
+                continue
+        merged.append(c)
+    cues = merged
+    _rebalance_runs(cues, int(scfg.get("rebalance_max_shift_s", 0.35) * 1e6))
+    min_show = int(scfg.get("min_cue_s", 0.6) * 1e6)
+    for i, a in enumerate(cues):
+        nxt = cues[i + 1]["start_us"] if i + 1 < len(cues) else a["end_us"] + 1_000_000
+        want = max(a["end_us"], a["start_us"] + min_show, a["start_us"] + int(len(a["text"]) / scfg.get("target_cps", 17) * 1e6))
+        a["end_us"] = min(want, nxt)                 # extend into the gap, never overlap the next cue
+        if 0 < nxt - a["end_us"] < 250_000:
+            a["end_us"] = nxt
     return cues
+
+
+def _rebalance_runs(cues: list[dict], max_shift: int) -> None:
+    """Within back-to-back cues, share display time by text length (even reading speed),
+    moving each boundary at most max_shift from where the words actually fall."""
+    i = 0
+    while i < len(cues):
+        j = i
+        while j + 1 < len(cues) and cues[j + 1]["start_us"] - cues[j]["end_us"] < 120_000:
+            j += 1
+        if j > i:
+            run = cues[i:j + 1]
+            a, b = run[0]["start_us"], run[-1]["end_us"]
+            weights = [len(c["text"]) + 3 for c in run]
+            tot = sum(weights)
+            t = a
+            for k, c in enumerate(run[:-1]):
+                t += int((b - a) * weights[k] / tot)
+                actual = run[k + 1]["start_us"]
+                boundary = max(actual - max_shift, min(actual + max_shift, t))
+                boundary = max(boundary, c["start_us"] + 200_000)
+                c["end_us"] = boundary
+                run[k + 1]["start_us"] = boundary
+        i = j + 1
 
 
 # ----------------------------------------------------------------------------- motion and sound
@@ -219,11 +259,18 @@ def sfx_events(style: dict, cand: dict, words_out: list[dict], zooms: list[dict]
 
 # ----------------------------------------------------------------------------- plan
 def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, framing: dict,
-              game: str | None = None) -> dict:
+              game: str | None = None, music_covered: bool = False, flash_mitigation: dict | None = None,
+              black_trim: dict | None = None) -> dict:
     st = style_sel["params"]
-    b = candidate["boundaries"]
+    b = dict(candidate["boundaries"])
+    if black_trim:                                   # never open or close on black (fades in the source)
+        b["start_us"] = max(b["start_us"], black_trim.get("start_us", b["start_us"]))
+        b["end_us"] = min(b["end_us"], black_trim.get("end_us", b["end_us"]))
+        candidate = dict(candidate, boundaries=b)
     words = _words(transcript, b["start_us"], b["end_us"])
     segs, seg_notes = build_segments(candidate, words, st, cfg)
+    if black_trim and (black_trim.get("start_us") or black_trim.get("end_us")):
+        seg_notes.append(f"trimmed black edges: {black_trim}")
     fmap, main_dur = out_time_map(segs)
     freeze = int(st.get("freeze_end_s", 0) * 1e6)
     out_dur = main_dur + freeze
@@ -274,6 +321,9 @@ def make_plan(candidate: dict, transcript: dict, cfg: dict, *, style_sel: dict, 
         "subtitles": {"cues": cues, "style": cap_style, "placement": placement},
         "hook": hook,
         "grade": st.get("grade", {}),
+        "music_covered_by_licence": music_covered,
+        "flash_mitigation": flash_mitigation,
+        "black_trim": black_trim,
         "freeze_end_us": freeze,
         "audio": {"loudness_target_lufs": cfg["render"]["loudness_target_lufs"],
                   "true_peak_dbtp": cfg["render"]["true_peak_dbtp"], "music": None},

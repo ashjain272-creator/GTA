@@ -29,6 +29,8 @@ acquire:                        # URL acquisition, class A/B only (AM-29)
   max_bytes_per_s: 5000000      # polite client; never evade rate limits
   sleep_between_requests_s: 1
   max_items: 25                 # cap per channel/playlist run (class A/B only)
+  max_bytes: 2500000000         # direct-file download cap
+  user_agent: "clipops/0.1 (open-source clipping tool)"   # generic client name; no personal details
   cookies_file_env: CLIPOPS_YOUTUBE_COOKIES_FILE   # optional: your own exported cookies (Netscape format), kept outside the repo
 
 publishing:
@@ -87,6 +89,11 @@ candidates:
   max_candidates_per_source: 5
   min_viability: 0.2            # below this, a candidate is rejected (spec 7.8)
   max_internal_gap_s: 3.0       # longest pause allowed inside a clip; dead air (HYPOTHESIS)
+  event_min_score: 0.3          # YAMNet impact/scream score that seeds an action candidate
+  event_loudness_lu: 12.0       # loudness peak this far above the source median also seeds one
+  event_cluster_gap_s: 6.0      # events closer than this form one moment
+  event_pre_s: 5.0              # lead-up kept before the first event
+  event_post_s: 5.0             # aftermath/reaction kept after the last event
 
 framing:                        # smart vertical framing (editing/framing.py); all HYPOTHESIS until real footage
   noise_floor: 6.0              # per-pixel abs diff below this is ignored (0-255 scale)
@@ -99,6 +106,8 @@ framing:                        # smart vertical framing (editing/framing.py); a
   cut_mean_diff: 25.0           # mean abs frame difference treated as a scene cut (reframe instantly)
   contrast_floor: 30.0          # pixel contrast vs frame median counted as "subject" when nothing moves
   third_person_follow: 0.35     # third-person games: how far the crop may follow motion away from centre
+flash_mitigation:               # photosensitivity filter settings tried in order until the WCAG check passes (E-045)
+  ladder: [[30, 0.5], [30, 0.35], [30, 0.2]]
 caption_placement:
   bottom_band: [0.66, 0.80]     # caption band as a fraction of output height (default)
   alt_margin_top_px: 560        # alternative: captions in the upper band when the subject sits low
@@ -128,6 +137,10 @@ render:
     font_size: 64
     max_words_per_cue: 4
     max_cue_s: 2.5
+    min_cue_s: 0.6              # a caption stays at least this long (extends into the gap after it)
+    target_cps: 17              # extend display towards this reading speed when there is room
+    max_cps: 22                 # faster than this → merge with the next cue when they fit
+    max_cue_chars: 34
     margin_v: 420               # px from bottom; keeps captions above platform UI (HYPOTHESIS, 8.9 VERIFY)
     margin_h: 80
     outline: 4
