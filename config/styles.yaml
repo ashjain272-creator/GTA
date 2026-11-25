@@ -1,0 +1,109 @@
+# Style bible, machine-readable (spec 8.5, Appendix B). Parameters start inside
+# Appendix B's ranges; every number is a HYPOTHESIS until reviewer/operator data exists.
+# A style is a design language, not a template: plans adapt it to each moment
+# (zoom anchors, ramp placement, hook text and effect timing come from the moment's own signals).
+
+defaults: &defaults
+  available: true
+  speed_ramp: {enabled: false}
+  cold_open: false
+  freeze_end_s: 0.0
+  grade: {contrast: 1.0, saturation: 1.0}
+  music: none
+
+funny_chaotic:
+  <<: *defaults
+  label: Funny and chaotic
+  fit: {energy: [0.4, 1.0], humor: 1.0, dialogue: 0.8, impact: 0.3, calm: -0.6}
+  zoom: {max_per_10s: 3, scale: [1.10, 1.30], ease_in_s: 0.08, hold_s: 0.9, ease_out_s: 0.25, anchor: speech_stress}
+  caption: {font: "Liberation Sans Bold", size: 86, case: upper, animation: pop_word, emphasis: "&H0000E5FF", outline: 7, margin_v: 520}
+  sfx: {max_per_10s: 4, allowed: [pop, whoosh, record_scratch, impact], level_db: -6, never_over_speech: true}
+  grade: {contrast: 1.03, saturation: 1.12}
+  freeze_end_s: 0.5
+  hook: {device: quote, cold_open_if_payoff_late: true}
+
+cinematic:
+  <<: *defaults
+  label: Cinematic
+  fit: {energy: [0.0, 0.6], humor: -0.5, dialogue: -0.2, impact: 0.4, calm: 0.8}
+  zoom: {max_per_10s: 1, scale: [1.03, 1.10], ease_in_s: 2.0, hold_s: 1.5, ease_out_s: 2.0, anchor: center_push}
+  caption: {font: "DejaVu Sans", size: 60, case: sentence, animation: fade, emphasis: null, outline: 3, margin_v: 440}
+  sfx: {max_per_10s: 1, allowed: [impact], level_db: -12, never_over_speech: true}
+  grade: {contrast: 1.06, saturation: 0.95}
+  speed_ramp: {enabled: true, factor: 0.6, before_s: 0.4, after_s: 0.8}
+  hook: {device: context}
+
+meme_reaction:
+  <<: *defaults
+  label: Meme and reaction-focused
+  available: false
+  unavailable_reason: "needs the operator's own reaction footage or registered meme assets (spec 18.2 D5); none registered"
+  fit: {energy: [0.5, 1.0], humor: 1.0, dialogue: 0.5, impact: 0.3, calm: -0.5}
+  zoom: {max_per_10s: 3, scale: [1.10, 1.30], ease_in_s: 0.08, hold_s: 0.8, ease_out_s: 0.2, anchor: speech_stress}
+  caption: {font: "Liberation Sans Bold", size: 82, case: upper, animation: pop_word, emphasis: "&H0000E5FF", outline: 7, margin_v: 520}
+  sfx: {max_per_10s: 3, allowed: [pop, record_scratch], level_db: -6, never_over_speech: true}
+  hook: {device: quote}
+
+high_energy:
+  <<: *defaults
+  label: High-energy
+  fit: {energy: [0.6, 1.0], humor: 0.2, dialogue: 0.0, impact: 1.0, calm: -0.8}
+  zoom: {max_per_10s: 3, scale: [1.15, 1.40], ease_in_s: 0.05, hold_s: 0.6, ease_out_s: 0.3, anchor: impact}
+  caption: {font: "Liberation Sans Bold", size: 84, case: upper, animation: karaoke, emphasis: "&H0000D7FF", outline: 7, margin_v: 520}
+  sfx: {max_per_10s: 4, allowed: [impact, whoosh, riser], level_db: -6, never_over_speech: true}
+  grade: {contrast: 1.08, saturation: 1.10}
+  speed_ramp: {enabled: true, factor: 0.5, before_s: 0.3, after_s: 0.6}
+  freeze_end_s: 0.4
+  hook: {device: tease, cold_open_if_payoff_late: true}
+
+clean_minimal:
+  <<: *defaults
+  label: Clean and minimal
+  fit: {energy: [0.0, 0.5], humor: 0.0, dialogue: 0.6, impact: -0.2, calm: 1.0}
+  zoom: {max_per_10s: 0, scale: [1.0, 1.0], ease_in_s: 0.0, hold_s: 0.0, ease_out_s: 0.0, anchor: none}
+  caption: {font: "DejaVu Sans Bold", size: 66, case: sentence, animation: none, emphasis: null, outline: 4, margin_v: 460}
+  sfx: {max_per_10s: 0, allowed: [], level_db: -99, never_over_speech: true}
+  hook: {device: context}
+
+# --- Appendix B.7 additional styles ---
+documentary:
+  <<: *defaults
+  label: Documentary / storytelling
+  fit: {energy: [0.1, 0.6], humor: -0.2, dialogue: 1.0, impact: 0.2, calm: 0.6}
+  zoom: {max_per_10s: 1, scale: [1.04, 1.12], ease_in_s: 1.5, hold_s: 1.5, ease_out_s: 1.5, anchor: center_push}
+  caption: {font: "DejaVu Sans Bold", size: 64, case: sentence, animation: fade, emphasis: null, outline: 4, margin_v: 460}
+  sfx: {max_per_10s: 1, allowed: [whoosh], level_db: -14, never_over_speech: true}
+  hook: {device: context}
+
+commentary_overlay:
+  <<: *defaults
+  label: Commentary overlay
+  available: false
+  unavailable_reason: "needs operator-recorded commentary audio; none supplied"
+  fit: {energy: [0.0, 1.0], humor: 0.3, dialogue: 0.5, impact: 0.3, calm: 0.3}
+  zoom: {max_per_10s: 1, scale: [1.05, 1.15], ease_in_s: 0.5, hold_s: 1.0, ease_out_s: 0.5, anchor: center_push}
+  caption: {font: "DejaVu Sans Bold", size: 64, case: sentence, animation: none, emphasis: null, outline: 4, margin_v: 460}
+  sfx: {max_per_10s: 0, allowed: [], level_db: -99, never_over_speech: true}
+  hook: {device: context}
+
+tutorial_tip:
+  <<: *defaults
+  label: Tutorial / tip
+  available: false
+  unavailable_reason: "needs a detected mechanic or explanation in the speech (not yet detectable)"
+  fit: {energy: [0.0, 0.5], humor: -0.5, dialogue: 1.0, impact: 0.0, calm: 0.8}
+  zoom: {max_per_10s: 1, scale: [1.10, 1.25], ease_in_s: 0.3, hold_s: 2.0, ease_out_s: 0.3, anchor: impact}
+  caption: {font: "DejaVu Sans Bold", size: 64, case: sentence, animation: none, emphasis: null, outline: 4, margin_v: 460}
+  sfx: {max_per_10s: 0, allowed: [], level_db: -99, never_over_speech: true}
+  hook: {device: context}
+
+compilation_countdown:
+  <<: *defaults
+  label: Compilation / countdown
+  available: false
+  unavailable_reason: "needs several approved moments; single-moment plans cannot use it"
+  fit: {energy: [0.5, 1.0], humor: 0.4, dialogue: 0.0, impact: 0.8, calm: -0.5}
+  zoom: {max_per_10s: 2, scale: [1.10, 1.30], ease_in_s: 0.08, hold_s: 0.6, ease_out_s: 0.2, anchor: impact}
+  caption: {font: "Liberation Sans Bold", size: 84, case: upper, animation: pop_word, emphasis: "&H0000E5FF", outline: 7, margin_v: 520}
+  sfx: {max_per_10s: 3, allowed: [whoosh, impact], level_db: -6, never_over_speech: true}
+  hook: {device: tease}

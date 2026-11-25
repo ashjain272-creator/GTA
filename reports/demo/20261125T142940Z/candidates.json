@@ -1,0 +1,553 @@
+{
+  "source_id": "src_83ea7ad5eea8ded3",
+  "model_version": "heuristic-v1-events",
+  "counts": {
+    "proposed": 2,
+    "rejected": 2
+  },
+  "candidates": [
+    {
+      "candidate_id": "cand_83ea7ad5_00001020",
+      "source_id": "src_83ea7ad5eea8ded3",
+      "version": 1,
+      "seed": {
+        "type": "coverage",
+        "pattern": "utterance_block",
+        "moment_ids": []
+      },
+      "boundaries": {
+        "start_us": 1020000,
+        "end_us": 16980000,
+        "time_base": "us",
+        "variants_considered": 1,
+        "rules": [
+          "start lead-in before first word",
+          "end after reaction tail",
+          "never inside a word (block boundaries)"
+        ]
+      },
+      "scores": {
+        "hook": {
+          "value": 0.515,
+          "confidence": 0.2,
+          "evidence": [
+            "Okay, watch this. I am going to jump"
+          ]
+        },
+        "payoff": {
+          "value": 0.882,
+          "confidence": 0.25,
+          "evidence": [
+            "payoff at 9.75s (55% into clip); impact score 0.33; loudness peak -14.1 LUFS",
+            "reaction within 3 s: 1.00"
+          ]
+        },
+        "story_arc": {
+          "value": 1.0,
+          "confidence": 0.25,
+          "evidence": [
+            "setup line present: True",
+            "reaction 1.00"
+          ]
+        },
+        "emotional_intensity": {
+          "value": 1.0,
+          "confidence": 0.3
+        },
+        "pacing": {
+          "value": 0.537,
+          "confidence": 0.3,
+          "evidence": [
+            "30 words in 16.0s"
+          ]
+        },
+        "visual_interest": {
+          "value": 0.251,
+          "confidence": 0.2,
+          "evidence": [
+            "1 scene cuts"
+          ]
+        },
+        "audio_quality": {
+          "value": 0.968,
+          "confidence": 0.3,
+          "evidence": [
+            "mean ASR word confidence used as intelligibility proxy"
+          ]
+        },
+        "standalone_context": {
+          "verdict": "unassessed",
+          "context_cost_s": null
+        }
+      },
+      "overall": {
+        "viability": 0.7099,
+        "uncertainty": 0.85,
+        "model_version": "heuristic-v1-events"
+      },
+      "gates": [
+        {
+          "name": "rights",
+          "passed": true,
+          "reason": "class A record valid"
+        },
+        {
+          "name": "audio_floor",
+          "passed": true,
+          "reason": "window median momentary loudness -19.1 LUFS (floor -50)"
+        },
+        {
+          "name": "duration",
+          "passed": true,
+          "reason": "16.0s vs allowed 8.0-45.0s"
+        },
+        {
+          "name": "music_screen",
+          "passed": true,
+          "reason": "music in 0% of windows (max 10%, threshold 0.3)"
+        },
+        {
+          "name": "dead_air",
+          "passed": true,
+          "reason": "longest pause between words 2.6s (max 3.0s)"
+        },
+        {
+          "name": "payoff_floor",
+          "passed": true,
+          "reason": "viability 0.71 vs min 0.2"
+        },
+        {
+          "name": "duplicate",
+          "passed": true,
+          "reason": "no >50% overlap"
+        }
+      ],
+      "duplicates": {
+        "within_run": [],
+        "within_library": [],
+        "semantic": []
+      },
+      "status": "proposed",
+      "rejection_reason": null,
+      "shelf_life": {
+        "type": "evergreen",
+        "expires_at": null
+      },
+      "transcript_excerpt": "Okay, watch this. I am going to jump the car over the bridge. Here we go. No way. That actually worked. That was the best jump I have ever done.",
+      "signals": {
+        "payoff_us": 9750000,
+        "impact_score": 0.332,
+        "laughter": 0.0,
+        "scream": 0.0,
+        "exclamations": 1,
+        "reaction": 1.0,
+        "setup_present": true
+      }
+    },
+    {
+      "candidate_id": "cand_83ea7ad5_00028380",
+      "source_id": "src_83ea7ad5eea8ded3",
+      "version": 1,
+      "seed": {
+        "type": "coverage",
+        "pattern": "utterance_block",
+        "moment_ids": []
+      },
+      "boundaries": {
+        "start_us": 28380000,
+        "end_us": 31220000,
+        "time_base": "us",
+        "variants_considered": 1,
+        "rules": [
+          "start lead-in before first word",
+          "end after reaction tail",
+          "never inside a word (block boundaries)"
+        ]
+      },
+      "scores": {
+        "hook": {
+          "value": 0.201,
+          "confidence": 0.2,
+          "evidence": [
+            "This one looks pretty slow."
+          ]
+        },
+        "payoff": {
+          "value": 0.35,
+          "confidence": 0.25,
+          "evidence": [
+            "payoff at 29.50s (39% into clip); impact score 0.00; loudness peak -13.4 LUFS",
+            "reaction within 3 s: 0.00"
+          ]
+        },
+        "story_arc": {
+          "value": 0.0,
+          "confidence": 0.25,
+          "evidence": [
+            "setup line present: False",
+            "reaction 0.00"
+          ]
+        },
+        "emotional_intensity": {
+          "value": 1.0,
+          "confidence": 0.3
+        },
+        "pacing": {
+          "value": 0.503,
+          "confidence": 0.3,
+          "evidence": [
+            "5 words in 2.8s"
+          ]
+        },
+        "visual_interest": {
+          "value": 0.0,
+          "confidence": 0.2,
+          "evidence": [
+            "0 scene cuts"
+          ]
+        },
+        "audio_quality": {
+          "value": 0.992,
+          "confidence": 0.3,
+          "evidence": [
+            "mean ASR word confidence used as intelligibility proxy"
+          ]
+        },
+        "standalone_context": {
+          "verdict": "unassessed",
+          "context_cost_s": null
+        }
+      },
+      "overall": {
+        "viability": 0.3094,
+        "uncertainty": 0.85,
+        "model_version": "heuristic-v1-events"
+      },
+      "gates": [
+        {
+          "name": "rights",
+          "passed": true,
+          "reason": "class A record valid"
+        },
+        {
+          "name": "audio_floor",
+          "passed": true,
+          "reason": "window median momentary loudness -16.8 LUFS (floor -50)"
+        },
+        {
+          "name": "duration",
+          "passed": false,
+          "reason": "2.8s vs allowed 8.0-45.0s"
+        },
+        {
+          "name": "music_screen",
+          "passed": true,
+          "reason": "music in 0% of windows (max 10%, threshold 0.3)"
+        },
+        {
+          "name": "dead_air",
+          "passed": true,
+          "reason": "longest pause between words 0.0s (max 3.0s)"
+        },
+        {
+          "name": "payoff_floor",
+          "passed": true,
+          "reason": "viability 0.31 vs min 0.2"
+        }
+      ],
+      "duplicates": {
+        "within_run": [],
+        "within_library": [],
+        "semantic": []
+      },
+      "status": "rejected",
+      "rejection_reason": "duration: 2.8s vs allowed 8.0-45.0s",
+      "shelf_life": {
+        "type": "evergreen",
+        "expires_at": null
+      },
+      "transcript_excerpt": "This one looks pretty slow.",
+      "signals": {
+        "payoff_us": 29500000,
+        "impact_score": 0.0,
+        "laughter": 0.0,
+        "scream": 0.0,
+        "exclamations": 0,
+        "reaction": 0.0,
+        "setup_present": false
+      }
+    },
+    {
+      "candidate_id": "cand_83ea7ad5_00023200",
+      "source_id": "src_83ea7ad5eea8ded3",
+      "version": 1,
+      "seed": {
+        "type": "coverage",
+        "pattern": "utterance_block",
+        "moment_ids": []
+      },
+      "boundaries": {
+        "start_us": 23200000,
+        "end_us": 31220000,
+        "time_base": "us",
+        "variants_considered": 1,
+        "rules": [
+          "start lead-in before first word",
+          "end after reaction tail",
+          "never inside a word (block boundaries)"
+        ]
+      },
+      "scores": {
+        "hook": {
+          "value": 0.157,
+          "confidence": 0.2,
+          "evidence": [
+            "Alright, let me find another car."
+          ]
+        },
+        "payoff": {
+          "value": 0.35,
+          "confidence": 0.25,
+          "evidence": [
+            "payoff at 29.50s (79% into clip); impact score 0.00; loudness peak -13.4 LUFS",
+            "reaction within 3 s: 0.00"
+          ]
+        },
+        "story_arc": {
+          "value": 0.0,
+          "confidence": 0.25,
+          "evidence": [
+            "setup line present: False",
+            "reaction 0.00"
+          ]
+        },
+        "emotional_intensity": {
+          "value": 1.0,
+          "confidence": 0.3
+        },
+        "pacing": {
+          "value": 0.392,
+          "confidence": 0.3,
+          "evidence": [
+            "11 words in 8.0s"
+          ]
+        },
+        "visual_interest": {
+          "value": 0.0,
+          "confidence": 0.2,
+          "evidence": [
+            "0 scene cuts"
+          ]
+        },
+        "audio_quality": {
+          "value": 0.958,
+          "confidence": 0.3,
+          "evidence": [
+            "mean ASR word confidence used as intelligibility proxy"
+          ]
+        },
+        "standalone_context": {
+          "verdict": "unassessed",
+          "context_cost_s": null
+        }
+      },
+      "overall": {
+        "viability": 0.2936,
+        "uncertainty": 0.85,
+        "model_version": "heuristic-v1-events"
+      },
+      "gates": [
+        {
+          "name": "rights",
+          "passed": true,
+          "reason": "class A record valid"
+        },
+        {
+          "name": "audio_floor",
+          "passed": true,
+          "reason": "window median momentary loudness -19.2 LUFS (floor -50)"
+        },
+        {
+          "name": "duration",
+          "passed": true,
+          "reason": "8.0s vs allowed 8.0-45.0s"
+        },
+        {
+          "name": "music_screen",
+          "passed": true,
+          "reason": "music in 0% of windows (max 10%, threshold 0.3)"
+        },
+        {
+          "name": "dead_air",
+          "passed": true,
+          "reason": "longest pause between words 2.8s (max 3.0s)"
+        },
+        {
+          "name": "payoff_floor",
+          "passed": true,
+          "reason": "viability 0.29 vs min 0.2"
+        },
+        {
+          "name": "duplicate",
+          "passed": true,
+          "reason": "no >50% overlap"
+        }
+      ],
+      "duplicates": {
+        "within_run": [],
+        "within_library": [],
+        "semantic": []
+      },
+      "status": "proposed",
+      "rejection_reason": null,
+      "shelf_life": {
+        "type": "evergreen",
+        "expires_at": null
+      },
+      "transcript_excerpt": "Alright, let me find another car. This one looks pretty slow.",
+      "signals": {
+        "payoff_us": 29500000,
+        "impact_score": 0.0,
+        "laughter": 0.0,
+        "scream": 0.0,
+        "exclamations": 0,
+        "reaction": 0.0,
+        "setup_present": false
+      }
+    },
+    {
+      "candidate_id": "cand_83ea7ad5_00009780",
+      "source_id": "src_83ea7ad5eea8ded3",
+      "version": 1,
+      "seed": {
+        "type": "coverage",
+        "pattern": "utterance_block",
+        "moment_ids": []
+      },
+      "boundaries": {
+        "start_us": 9780000,
+        "end_us": 27020000,
+        "time_base": "us",
+        "variants_considered": 1,
+        "rules": [
+          "start lead-in before first word",
+          "end after reaction tail",
+          "never inside a word (block boundaries)"
+        ]
+      },
+      "scores": {
+        "hook": {
+          "value": 0.533,
+          "confidence": 0.2,
+          "evidence": [
+            "No way. That actually worked. That was the"
+          ]
+        },
+        "payoff": {
+          "value": 0.08,
+          "confidence": 0.25,
+          "evidence": [
+            "payoff at 11.00s (7% into clip); impact score 0.04; loudness peak -14.1 LUFS",
+            "reaction within 3 s: 0.00"
+          ]
+        },
+        "story_arc": {
+          "value": 0.0,
+          "confidence": 0.25,
+          "evidence": [
+            "setup line present: False",
+            "reaction 0.00"
+          ]
+        },
+        "emotional_intensity": {
+          "value": 1.0,
+          "confidence": 0.3
+        },
+        "pacing": {
+          "value": 0.331,
+          "confidence": 0.3,
+          "evidence": [
+            "20 words in 17.2s"
+          ]
+        },
+        "visual_interest": {
+          "value": 0.0,
+          "confidence": 0.2,
+          "evidence": [
+            "0 scene cuts"
+          ]
+        },
+        "audio_quality": {
+          "value": 0.97,
+          "confidence": 0.3,
+          "evidence": [
+            "mean ASR word confidence used as intelligibility proxy"
+          ]
+        },
+        "standalone_context": {
+          "verdict": "unassessed",
+          "context_cost_s": null
+        }
+      },
+      "overall": {
+        "viability": 0.2815,
+        "uncertainty": 0.85,
+        "model_version": "heuristic-v1-events"
+      },
+      "gates": [
+        {
+          "name": "rights",
+          "passed": true,
+          "reason": "class A record valid"
+        },
+        {
+          "name": "audio_floor",
+          "passed": true,
+          "reason": "window median momentary loudness -31.1 LUFS (floor -50)"
+        },
+        {
+          "name": "duration",
+          "passed": true,
+          "reason": "17.2s vs allowed 8.0-45.0s"
+        },
+        {
+          "name": "music_screen",
+          "passed": true,
+          "reason": "music in 0% of windows (max 10%, threshold 0.3)"
+        },
+        {
+          "name": "dead_air",
+          "passed": false,
+          "reason": "longest pause between words 7.6s (max 3.0s)"
+        },
+        {
+          "name": "payoff_floor",
+          "passed": true,
+          "reason": "viability 0.28 vs min 0.2"
+        }
+      ],
+      "duplicates": {
+        "within_run": [],
+        "within_library": [],
+        "semantic": []
+      },
+      "status": "rejected",
+      "rejection_reason": "dead_air: longest pause between words 7.6s (max 3.0s)",
+      "shelf_life": {
+        "type": "evergreen",
+        "expires_at": null
+      },
+      "transcript_excerpt": "No way. That actually worked. That was the best jump I have ever done. Alright, let me find another car.",
+      "signals": {
+        "payoff_us": 11000000,
+        "impact_score": 0.043,
+        "laughter": 0.0,
+        "scream": 0.0,
+        "exclamations": 1,
+        "reaction": 0.0,
+        "setup_present": false
+      }
+    }
+  ],
+  "_input_key": "b62d66050e7f908e"
+}

@@ -1,7 +1,14 @@
-"""Stage: render a plan to a 9:16 short (spec 9.2), skeleton grade.
+"""Render an edit plan to a finished 9:16 short (spec 9.2).
 
-Two-pass audio loudness normalisation (measure, then apply) so the output hits
-the configured target instead of guessing.
+Pass A, picture and source audio in one encode:
+  framing (tracked crop from sendcmd keyframes, or blur fill) → per-segment
+  trim and speed → concat → zoom punch-ins (zoompan) → grade → captions and hook (libass)
+  → end freeze; audio: per-segment trim + atempo → concat → silence under the freeze.
+  Output is a mezzanine (video final quality, PCM audio). The source-audio stem is
+  kept for QA's music screen.
+Pass B, sound design and loudness: registered SFX are mixed at levels relative
+  to the measured stem peak, two-pass loudnorm plus a limiter run, and the video
+  is stream-copied.
 """
 from __future__ import annotations
 
@@ -9,63 +16,164 @@ import json
 import re
 from pathlib import Path
 
+import yaml
+
+from ..editing.framing import sendcmd_crop_x
 from ..media import run
 from ..runreport import StageFailed
+from ..storage.artefacts import sha256_file
 from .subtitles import build_ass
 
 _JSON = re.compile(r"\{[^{}]*\"input_i\"[^{}]*\}", re.S)
 
 
 def _filter_path(p: Path) -> str:
-    # escape for the FFmpeg filtergraph parser
     return str(p).replace("\\", "/").replace(":", r"\:").replace("'", r"\'")
 
 
-def measure_loudness(src: Path, start_s: float, dur_s: float, target: float, tp: float) -> dict:
-    p = run(["ffmpeg", "-hide_banner", "-nostats", "-ss", f"{start_s:.3f}", "-t", f"{dur_s:.3f}",
-             "-i", str(src), "-vn", "-af", f"loudnorm=I={target}:TP={tp}:LRA=11:print_format=json",
-             "-f", "null", "-"], code="loudness_measure_failed")
+def _even(x: float) -> int:
+    return int(round(x / 2)) * 2
+
+
+def measure_loudness(path: Path, target: float, tp: float) -> dict:
+    p = run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-vn",
+             "-af", f"loudnorm=I={target}:TP={tp}:LRA=11:print_format=json", "-f", "null", "-"],
+            code="loudness_measure_failed")
     m = _JSON.search(p.stderr.decode(errors="replace"))
     if not m:
-        raise StageFailed("loudness_parse_failed", "bug", "loudnorm JSON not found in output")
+        raise StageFailed("loudness_parse_failed", "bug", "loudnorm JSON not found")
     return json.loads(m.group(0))
 
 
-def render(plan: dict, src: Path, out_dir: Path, cfg: dict) -> dict:
+def _peak_db(path: Path) -> float:
+    p = run(["ffmpeg", "-hide_banner", "-i", str(path), "-af", "volumedetect", "-f", "null", "-"], code="peak_failed")
+    m = re.search(r"max_volume:\s*(-?[\d.]+) dB", p.stderr.decode(errors="replace"))
+    return float(m.group(1)) if m else -20.0
+
+
+def zoom_expr(zooms: list[dict]) -> str:
+    if not zooms:
+        return "1"
+    terms = []
+    for z in zooms:
+        a, f, r, e = (z[k] / 1e6 for k in ("start_us", "full_us", "release_us", "end_us"))
+        ein, eout = max(f - a, 0.02), max(e - r, 0.02)
+        terms.append(f"{z['scale'] - 1:.4f}*max(0,min(min(1,(in_time-{a:.3f})/{ein:.3f}),min(1,({e:.3f}-in_time)/{eout:.3f})))")
+    return "1+" + "+".join(terms)
+
+
+def _video_base(plan: dict, src_w: int, src_h: int, cmds: Path, W: int, H: int, fps: int) -> str:
+    fr = plan["framing"]
+    if fr["layout"] == "tracked_crop":
+        cw = _even(src_h * 9 / 16)
+        x0 = max(0, min(src_w - cw, int(fr["keyframes"][0]["cx"] * src_w - cw / 2))) if fr["keyframes"] else 0
+        return (f"[0:v]fps={fps},sendcmd=f='{_filter_path(cmds)}',crop@trk=w={cw}:h={_even(src_h)}:x={x0}:y=0,"
+                f"scale={W}:{H}:flags=lanczos,setsar=1[base]")
+    if fr["layout"] == "full":
+        return f"[0:v]fps={fps},scale={W}:{H}:force_original_aspect_ratio=decrease,pad={W}:{H}:(ow-iw)/2:(oh-ih)/2,setsar=1[base]"
+    return (f"[0:v]fps={fps},split[s1][s2];"
+            f"[s1]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},boxblur=24:2,eq=brightness=-0.12[bg];"
+            f"[s2]scale={W}:-2[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1[base]")
+
+
+def render(plan: dict, src: Path, out_dir: Path, cfg: dict, src_w: int, src_h: int) -> dict:
     r = cfg["render"]
-    seg = plan["timeline"][0]
-    start_s, dur_s = seg["src_start_us"] / 1e6, (seg["src_end_us"] - seg["src_start_us"]) / 1e6
+    W, H, fps = r["width"], r["height"], r["fps"]
+    repo = Path(cfg["_repo"])
     short_id = "short_" + plan["plan_id"][5:]
     out_dir.mkdir(parents=True, exist_ok=True)
+    win_a = plan["window"]["src_start_us"]
+    win_dur = (plan["window"]["src_end_us"] - win_a) / 1e6
+    # files
+    cmds = out_dir / f"{short_id}.crop.cmd"
+    if plan["framing"]["layout"] == "tracked_crop":
+        cmds.write_text(sendcmd_crop_x(plan["framing"]["keyframes"], src_w, _even(src_h * 9 / 16)))
     ass_path = out_dir / f"{short_id}.ass"
-    ass_path.write_text(build_ass(plan["subtitles"]["cues"], r["width"], r["height"], r["subtitles"]))
-    out = out_dir / f"{short_id}.mp4"
-
-    meas = measure_loudness(src, start_s, dur_s, r["loudness_target_lufs"], r["true_peak_dbtp"])
-    af = (f"loudnorm=I={r['loudness_target_lufs']}:TP={r['true_peak_dbtp']}:LRA=11:"
-          f"measured_I={meas['input_i']}:measured_TP={meas['input_tp']}:measured_LRA={meas['input_lra']}:"
-          f"measured_thresh={meas['input_thresh']}:offset={meas['target_offset']}:linear=true,"
-          f"aresample=48000,"
-          # sample-peak limiter below the true-peak ceiling: loudnorm's linear mode does not
-          # guarantee the ceiling (measured -1.06 dBTP vs -1.5 target on 2026-11-21)
-          f"alimiter=limit={10 ** ((r['true_peak_dbtp'] - 0.5) / 20):.4f}:attack=5:release=50:level=disabled")
-    W, H = r["width"], r["height"]
-    tail = (f"[bg][fg]overlay=(W-w)/2:(H-h)/2:shortest=1,fps={r['fps']},"
-            f"subtitles=filename='{_filter_path(ass_path)}',format=yuv420p,setsar=1[v]")
-    if r["background"] == "blur":
-        vf = (f"[0:v]split[s1][s2];"
-              f"[s1]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
-              f"boxblur=24:2,eq=brightness=-0.12[bg];"
-              f"[s2]scale={W}:-2[fg];" + tail)
-    elif r["background"] == "black":
-        vf = f"color=c=black:s={W}x{H}:d={dur_s:.3f}[bg];[0:v]scale={W}:-2[fg];" + tail
-    else:
-        raise StageFailed("bad_config", "config", f"render.background={r['background']!r}")
-    run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-ss", f"{start_s:.3f}", "-t", f"{dur_s:.3f}",
-         "-i", str(src), "-filter_complex", vf, "-map", "[v]", "-map", "0:a:0?", "-af", af,
+    ass_path.write_text(build_ass(plan["subtitles"]["cues"], W, H, plan["subtitles"]["style"], plan.get("hook")))
+    segs = plan["timeline"]
+    n = len(segs)
+    g = plan.get("grade") or {}
+    freeze = plan.get("freeze_end_us", 0) / 1e6
+    # --- pass A graph
+    parts = [_video_base(plan, src_w, src_h, cmds, W, H, fps)]
+    parts.append(f"[base]split={n}" + "".join(f"[v{i}]" for i in range(n)) if n > 1 else "[base]null[v0]")
+    parts.append("[0:a]aresample=48000," + (f"asplit={n}" + "".join(f"[a{i}]" for i in range(n)) if n > 1 else "anull[a0]"))
+    for i, s in enumerate(segs):
+        a, b = (s["src_start_us"] - win_a) / 1e6, (s["src_end_us"] - win_a) / 1e6
+        sp = s["speed"]
+        # fps after the speed change duplicates frames for slow motion (real frames, not stretched timestamps)
+        parts.append(f"[v{i}]trim=start={a:.3f}:end={b:.3f},setpts=(PTS-STARTPTS)/{sp},fps={fps}[sv{i}]")
+        at = f",atempo={sp}" if abs(sp - 1) > 1e-6 else ""
+        parts.append(f"[a{i}]atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS{at}[sa{i}]")
+    parts.append("".join(f"[sv{i}]" for i in range(n)) + f"concat=n={n}:v=1:a=0[cat]")
+    parts.append("".join(f"[sa{i}]" for i in range(n)) + f"concat=n={n}:v=0:a=1[acat]")
+    vchain = "[cat]"
+    if plan["zooms"]:
+        vchain += (f"zoompan=z='{zoom_expr(plan['zooms'])}':x='iw/2-(iw/zoom/2)':y='(ih-ih/zoom)*0.46':"
+                   f"d=1:s={W}x{H}:fps={fps},")
+    vchain += f"eq=contrast={g.get('contrast', 1.0)}:saturation={g.get('saturation', 1.0)},"
+    vchain += f"subtitles=filename='{_filter_path(ass_path)}':fontsdir='{_filter_path(repo / 'assets' / 'fonts')}',"
+    if freeze > 0:
+        vchain += f"tpad=stop_mode=clone:stop_duration={freeze:.3f},"
+    vchain += "setpts=N/FRAME_RATE/TB,format=yuv420p,setsar=1[v]"   # regular, monotonic timestamps (no fps filter: it stalls after zoompan)
+    parts.append(vchain)
+    parts.append(f"[acat]apad=pad_dur={freeze:.3f}[astem]" if freeze > 0 else "[acat]anull[astem]")
+    mezz = out_dir / f"{short_id}.mezz.mkv"
+    run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-ss", f"{win_a / 1e6:.3f}", "-t", f"{win_dur:.3f}",
+         "-i", str(src), "-filter_complex", ";".join(parts), "-map", "[v]", "-map", "[astem]",
          "-c:v", r["video_codec"], "-crf", str(r["crf"]), "-preset", r["preset"],
-         "-c:a", r["audio_codec"], "-b:a", r["audio_bitrate"], "-movflags", "+faststart", str(out)],
-        code="render_failed")
+         "-c:a", "pcm_s16le", str(mezz)], code="render_failed", timeout=7200)
+    stem = out_dir / f"{short_id}.stem.wav"
+    run(["ffmpeg", "-v", "error", "-y", "-i", str(mezz), "-vn", "-c:a", "pcm_s16le", str(stem)], code="stem_failed")
+    # --- pass B: SFX mix at levels relative to the stem peak, then loudness
+    reg = yaml.safe_load((repo / "config" / "assets.yaml").read_text())["sfx"]
+    stem_peak = _peak_db(stem)
+    inputs, mix = ["-i", str(stem)], []
+    used_assets = []
+    for k, e in enumerate(plan["sfx"], start=1):
+        asset = reg.get(e["asset"])
+        if not asset:
+            raise StageFailed("unregistered_asset", "policy", f"SFX '{e['asset']}' is not in config/assets.yaml (spec 4.8)")
+        apath = repo / asset["path"]
+        if sha256_file(apath) != asset["sha256"]:
+            raise StageFailed("asset_hash_mismatch", "policy", f"{apath.name} differs from its registered hash")
+        inputs += ["-i", str(apath)]
+        gain = (stem_peak + e["level_db"]) - (-3.0)            # assets are normalised to -3 dBFS peak
+        ms = int(e["out_us"] / 1000)
+        mix.append(f"[{k}:a]aresample=48000,adelay={ms}|{ms},volume={gain:.2f}dB[x{k}]")
+        used_assets.append({"asset": e["asset"], "sha256": asset["sha256"], "gain_db": round(gain, 2), "at_s": ms / 1000})
+    mixed = out_dir / f"{short_id}.mix.wav"
+    if mix:
+        graph = ";".join(mix) + ";[0:a]" + "".join(f"[x{k}]" for k in range(1, len(mix) + 1)) + \
+            f"amix=inputs={len(mix) + 1}:normalize=0:duration=first[m]"
+        run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", graph, "-map", "[m]",
+             "-c:a", "pcm_s16le", str(mixed)], code="sfx_mix_failed")
+    else:
+        mixed = stem
+    meas = measure_loudness(mixed, r["loudness_target_lufs"], r["true_peak_dbtp"])
+    out = out_dir / f"{short_id}.mp4"
+    # AAC adds inter-sample overshoot that depends on content (measured +0.6 dB on speech, +2.9 dB on a
+    # low-frequency impact, 2026-11-25). So: encode, measure the real true peak, tighten, retry.
+    limit_db = r["true_peak_dbtp"] - 1.0
+    attempts = []
+    for _ in range(4):
+        af = (f"loudnorm=I={r['loudness_target_lufs']}:TP={r['true_peak_dbtp']}:LRA=11:"
+              f"measured_I={meas['input_i']}:measured_TP={meas['input_tp']}:measured_LRA={meas['input_lra']}:"
+              f"measured_thresh={meas['input_thresh']}:offset={meas['target_offset']}:linear=true,aresample=48000,"
+              f"alimiter=limit={10 ** (limit_db / 20):.4f}:attack=5:release=50:level=disabled")
+        run(["ffmpeg", "-v", "error", "-y", "-i", str(mezz), "-i", str(mixed), "-map", "0:v:0", "-map", "1:a:0",
+             "-c:v", "copy", "-af", af, "-c:a", r["audio_codec"], "-b:a", r["audio_bitrate"],
+             "-movflags", "+faststart", "-shortest", str(out)], code="final_mux_failed")
+        tp = float(measure_loudness(out, r["loudness_target_lufs"], r["true_peak_dbtp"])["input_tp"])
+        attempts.append({"limiter_db": round(limit_db, 2), "true_peak": tp})
+        if tp <= r["true_peak_dbtp"]:
+            break
+        limit_db -= min(1.0, (tp - r["true_peak_dbtp"]) + 0.1)   # small steps keep loudness on target
+    mezz.unlink(missing_ok=True)
+    if mixed != stem:
+        mixed.unlink(missing_ok=True)
     return {"short_id": short_id, "plan_id": plan["plan_id"], "path": str(out), "ass_path": str(ass_path),
-            "expected_duration_us": plan["duration_us"], "loudness_first_pass": meas,
-            "encoder": r["video_codec"]}
+            "stem_path": str(stem), "expected_duration_us": plan["duration_us"], "loudness_first_pass": meas,
+            "encoder": r["video_codec"], "layout": plan["framing"]["layout"], "sfx_used": used_assets,
+            "true_peak_attempts": attempts,
+            "style": plan["style"]["name"]}

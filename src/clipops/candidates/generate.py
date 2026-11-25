@@ -10,7 +10,7 @@ from __future__ import annotations
 import bisect
 import re
 
-MODEL_VERSION = "skeleton-heuristic-3"
+MODEL_VERSION = "heuristic-v1-events"
 EXCLAIM = re.compile(r"\b(no way|oh my|wow|what|let'?s go|yes|no no|insane|holy)\b|!", re.I)
 
 
@@ -78,12 +78,28 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
         density = _clip(len(words) / dur_s / 3.5)
         exclaims = len(EXCLAIM.findall(text))
         first_words = " ".join(w["text"] for w in blks[0]["words"][:8])
-        hook = _clip(0.5 * density + 0.5 * _clip(len(EXCLAIM.findall(first_words)) / 1.0))
-        payoff = _clip(intensity * (1.0 if rel_peak_pos >= 0.4 else 0.5) + 0.2 * _clip(exclaims / 2))
+        # --- audio-event signals (YAMNet): impacts, laughter, screams; the reaction pattern
+        ev = [f for f in (events or {}).get("frames", []) if start <= f["t_us"] <= end]
+        imp = max(ev, key=lambda f: max(f.get("explosion", 0), f.get("gunshot", 0), f.get("crash", 0)), default=None)
+        impact_score = max(imp.get("explosion", 0), imp.get("gunshot", 0), imp.get("crash", 0)) if imp else 0.0
+        laugh = max((f.get("laughter", 0.0) for f in ev), default=0.0)
+        scream = max((f.get("scream", 0.0) for f in ev), default=0.0)
+        payoff_us = imp["t_us"] if imp and impact_score >= 0.15 else int(peak_t * 1e6)
+        # reaction: an exclamation or laugh within 3 s after the payoff event
+        react_words = [w for w in words if payoff_us < w["start_us"] <= payoff_us + 3_000_000]
+        reaction = _clip(len(EXCLAIM.findall(" ".join(w["text"] for w in react_words))) / 1.0 + laugh)
+        rel_payoff = (payoff_us - start) / max(end - start, 1)
+        setup_present = 1.0 if any(re.search(r"\b(watch|going to|gonna|let me|try)\b", w["text"], re.I)
+                                   for w in words if w["start_us"] < payoff_us) else 0.0
+        hook = _clip(0.4 * density + 0.4 * _clip(len(EXCLAIM.findall(first_words)) / 1.0) + 0.3 * setup_present)
+        payoff = _clip(0.35 * intensity + 0.35 * impact_score / 0.5 + 0.3 * reaction
+                       - (0.3 if rel_payoff < 0.15 else 0.0))       # payoff in the first moments has no build-up
         n_cuts = sum(1 for t in cut_times if start <= t <= end)
         visual = _clip(n_cuts / max(dur_s / 4, 1))
         mean_conf = sum(w["confidence"] for w in words) / len(words) if words else 0.0
-        viability = round(0.30 * payoff + 0.25 * hook + 0.20 * intensity + 0.15 * density + 0.10 * visual, 4)
+        story = _clip(0.5 * setup_present + 0.5 * reaction)        # setup → event → reaction arc
+        viability = round(0.28 * payoff + 0.18 * hook + 0.18 * story + 0.14 * intensity
+                          + 0.10 * _clip(max(laugh, scream) / 0.5) + 0.07 * density + 0.05 * visual, 4)
         window_p50 = sorted(loud)[len(loud) // 2] if loud else -120.0
         gaps = [(b["start_us"] - a["end_us"]) / 1e6 for a, b in zip(words, words[1:])]
         max_gap = max(gaps, default=0.0)
@@ -109,8 +125,12 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
                                      "never inside a word (block boundaries)"]},
             "scores": {
                 "hook": {"value": round(hook, 3), "confidence": 0.2, "evidence": [first_words]},
-                "payoff": {"value": round(payoff, 3), "confidence": 0.2,
-                           "evidence": [f"loudness peak {peak:.1f} LUFS at {peak_t:.2f}s ({rel_peak_pos:.0%} into clip)"]},
+                "payoff": {"value": round(payoff, 3), "confidence": 0.25,
+                           "evidence": [f"payoff at {payoff_us / 1e6:.2f}s ({rel_payoff:.0%} into clip); "
+                                        f"impact score {impact_score:.2f}; loudness peak {peak:.1f} LUFS",
+                                        f"reaction within 3 s: {reaction:.2f}"]},
+                "story_arc": {"value": round(story, 3), "confidence": 0.25,
+                              "evidence": [f"setup line present: {bool(setup_present)}", f"reaction {reaction:.2f}"]},
                 "emotional_intensity": {"value": round(intensity, 3), "confidence": 0.3},
                 "pacing": {"value": round(density, 3), "confidence": 0.3, "evidence": [f"{len(words)} words in {dur_s:.1f}s"]},
                 "visual_interest": {"value": round(visual, 3), "confidence": 0.2, "evidence": [f"{n_cuts} scene cuts"]},
@@ -124,6 +144,9 @@ def generate(source_id: str, duration_us: int, transcript: dict, curve: list[tup
             "status": "proposed", "rejection_reason": None,
             "shelf_life": {"type": "evergreen", "expires_at": None},
             "transcript_excerpt": text,
+            "signals": {"payoff_us": payoff_us, "impact_score": round(impact_score, 3),
+                        "laughter": round(laugh, 3), "scream": round(scream, 3), "exclamations": exclaims,
+                        "reaction": round(reaction, 3), "setup_present": bool(setup_present)},
         })
 
     # rank, then reject failures and overlaps (rejections are kept: spec 1.4)

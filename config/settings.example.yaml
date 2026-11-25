@@ -88,6 +88,29 @@ candidates:
   min_viability: 0.2            # below this, a candidate is rejected (spec 7.8)
   max_internal_gap_s: 3.0       # longest pause allowed inside a clip; dead air (HYPOTHESIS)
 
+framing:                        # smart vertical framing (editing/framing.py); all HYPOTHESIS until real footage
+  noise_floor: 6.0              # per-pixel abs diff below this is ignored (0-255 scale)
+  min_motion: 2.0               # per-column mean motion for a frame to count as active
+  min_active_share: 0.25        # below this share of active frames → blur_fill
+  min_concentration: 0.55       # median share of motion inside the 9:16 window needed to crop
+  dead_zone_frac: 0.03          # ignore centre changes smaller than this (of source width)
+  smoothing: 0.25               # exponential smoothing per analysis frame (10 fps)
+  max_speed_frac_per_s: 0.6     # camera may move at most this share of the width per second
+  cut_mean_diff: 25.0           # mean abs frame difference treated as a scene cut (reframe instantly)
+  contrast_floor: 30.0          # pixel contrast vs frame median counted as "subject" when nothing moves
+  third_person_follow: 0.35     # third-person games: how far the crop may follow motion away from centre
+caption_placement:
+  bottom_band: [0.66, 0.80]     # caption band as a fraction of output height (default)
+  alt_margin_top_px: 560        # alternative: captions in the upper band when the subject sits low
+  subject_clearance: 0.08
+
+edit:
+  hook_duration_s: 2.6
+  teaser_before_s: 0.8          # cold-open teaser: seconds before the payoff
+  teaser_after_s: 0.7
+  zoom_min_gap_s: 1.2
+  sfx_speech_guard_s: 0.15      # an effect may not start within this distance of a spoken word
+
 render:
   width: 1080
   height: 1920

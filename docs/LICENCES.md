@@ -43,12 +43,16 @@ copyleft or unknown licence that is not listed here.
 | espeak-ng 1.51 | GPL-3.0-or-later | Used only by `scripts/make_synthetic_fixture.py` to make test audio. Not distributed. Generated speech treated as unencumbered (A-012). |
 | libass (inside FFmpeg) | ISC | yes |
 
-## Assets
+## Assets (registry: config/assets.yaml, hashes enforced at render time)
 
-No fonts, music, sound effects or graphics are registered yet. Captions use the
-system font "DejaVu Sans" (Bitstream Vera licence plus public-domain changes;
-permits embedding in rendered video). The asset registry (spec A.3) is
-required before any further asset is used (ROADMAP P0-14).
+| Asset | Licence |
+|---|---|
+| SFX: whoosh, impact, pop, riser, record_scratch (`assets/sfx/`) | Original works synthesised by `scripts/make_sfx_assets.py`; owned by the project; no attribution |
+| Fonts: DejaVu Sans (+Bold) | Bitstream Vera licence (redistribution and embedding permitted), `assets/fonts/DejaVu-LICENSE.txt` |
+| Fonts: Liberation Sans (+Bold) | SIL Open Font License 1.1, `assets/fonts/Liberation-LICENSE.txt` |
+
+No music is registered. Every style has music off by default (Appendix B), so
+there is no music bed until a licensed track is added to the registry.
 
 ## Watch list
 

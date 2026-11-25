@@ -52,7 +52,7 @@ def run_demo(cfg: dict, out_dir: Path | None) -> int:
             st.update(w)
             summary["wer"] = w | {"note": "synthetic TTS on clean bed; NOT representative of gaming audio"}
         cands = pipe.candidates(sid)
-        plan = pipe.plan(sid)
+        plan = pipe.plan(sid, use_history=False)    # deterministic demo: no style-diversity history
         info, qa = pipe.render_and_qa(sid, plan)
         best = next(c for c in cands["candidates"] if c["candidate_id"] == plan["candidate_id"])
         exp_a, exp_b = truth["expected_best_moment_s"]
@@ -63,7 +63,11 @@ def run_demo(cfg: dict, out_dir: Path | None) -> int:
             "top_candidate": {"id": best["candidate_id"], "start_s": b0, "end_s": b1,
                               "viability": best["overall"]["viability"],
                               "covers_expected_moment": covers, "expected_s": [exp_a, exp_b]},
-            "plan_id": plan["plan_id"], "short": info["path"], "qa_passed": qa["passed"],
+            "plan_id": plan["plan_id"], "style": plan["style"]["name"], "style_reasons": plan["style"]["selected_because"],
+            "structure": plan["structure"], "framing": {k: plan["framing"].get(k) for k in ("layout", "reason")},
+            "zooms": len(plan["zooms"]), "sfx": [e["asset"] for e in plan["sfx"]], "hook": plan["hook"]["text"],
+            "contribution": [c["type"] for c in plan["contribution"]],
+            "short": info["path"], "qa_passed": qa["passed"],
             "qa_failed": qa["failed"], "qa_review_flags": qa["review_flags"],
         })
         if not covers:

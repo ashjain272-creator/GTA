@@ -28,7 +28,7 @@ from ..storage.artefacts import read_json, source_dir, write_json
 
 # Bump a stage's version whenever its implementation changes output, so cached
 # artefacts are invalidated (resumability must never serve stale results).
-STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "events": 1, "cands": 4}
+STAGE_VERSIONS = {"probe": 1, "asr": 1, "audio": 1, "scenes": 1, "events": 1, "cands": 5}
 
 
 def _key(*parts) -> str:
@@ -211,9 +211,14 @@ class Pipeline:
             st.update(res["counts"])
             return _store(d / "candidates.json", key, res)
 
-    def plan(self, source_id: str, candidate_id: str | None = None) -> dict:
-        d, _, _ = self._src(source_id)
+    def plan(self, source_id: str, candidate_id: str | None = None, style: str | None = None,
+             use_history: bool = True) -> dict:
+        from ..editing import framing as framing_mod
+        from ..editing import styles as styles_mod
+        d, rec, src = self._src(source_id)
         cands = self.candidates(source_id)
+        probe = self.ingest(source_id)
+        events = self.analyse(source_id)["events"]
         with self.report.stage("plan") as st:
             pool = [c for c in cands["candidates"] if c["status"] == "proposed"]
             if candidate_id:
@@ -223,16 +228,38 @@ class Pipeline:
                                   "no proposed candidate: publishing nothing is the correct outcome (spec 7.8)")
             cand = pool[0]
             transcript = read_json(d / "transcript.json") if (d / "transcript.json").is_file() else {"segments": []}
-            p = make_plan(cand, transcript, self.cfg)
-            st["plan_id"] = p["plan_id"]
-            self.report.warn("plan", "no_style_engine", "single skeleton style; selection logic not built (Phase 5)")
+            prof = styles_mod.moment_profile(cand, events)
+            sel = styles_mod.select_style(self.repo, self.cfg, prof, force=style,
+                                          recent=None if use_history else [])
+            b = cand["boundaries"]
+            v = probe["video"]
+            camera = None
+            for gp in rec.get("game_policies") or []:
+                ref = gp.get("policy_ref") or ""
+                if ref.startswith("config/game_policies.yaml#"):
+                    import yaml as _yaml
+                    reg = _yaml.safe_load((self.repo / "config" / "game_policies.yaml").read_text())
+                    camera = (reg.get(ref.split("#", 1)[1]) or {}).get("camera")
+            fr = framing_mod.track(src, b["start_us"] / 1e6, (b["end_us"] - b["start_us"]) / 1e6,
+                                   v["width"], v["height"], self.cfg, camera=camera,
+                                   cut_times_s=[c["time_us"] / 1e6 for c in self.analyse(source_id)["scenes"]["cuts"]])
+            # keyframes are relative to the window start, which is also the render input start
+            game = (rec.get("game_policies") or [{}])[0].get("game")
+            p = make_plan(cand, transcript, self.cfg, style_sel=sel, framing=fr, game=game)
+            st.update(plan_id=p["plan_id"], style=sel["name"], layout=fr["layout"],
+                      zooms=len(p["zooms"]), sfx=len(p["sfx"]), structure=p["structure"]["name"])
+            if fr["layout"] == "blur_fill":
+                self.report.warn("plan", "framing_fallback", f"blur_fill used: {fr['reason']}")
+            if not style and use_history:
+                styles_mod.record_choice(self.cfg, sel["name"])
             write_json(d / "plans" / f"{p['plan_id']}.json", p)
             return p
 
     def render_and_qa(self, source_id: str, plan: dict) -> tuple[dict, dict]:
         d, _, src = self._src(source_id)
         with self.report.stage("render") as st:
-            info = render(plan, src, data_path(self.cfg, "renders") / source_id, self.cfg)
+            v = self.ingest(source_id)["video"]
+            info = render(plan, src, data_path(self.cfg, "renders") / source_id, self.cfg, v["width"], v["height"])
             st["short_id"] = info["short_id"]
             write_json(d / "renders" / f"{info['short_id']}.json", info)
             self.report.artefact("render", Path(info["path"]))

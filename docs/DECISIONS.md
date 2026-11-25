@@ -186,3 +186,48 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
 - **Security note:** a cookie file is a live login credential. It must stay
   outside the repo, and in cloud sessions it should come from a spare
   account (R37).
+
+## ADR-0015 Editing engine: styles, timeline, effects, hooks  [EDIT, MEDIA]
+- **Date:** 2026-11-25 · **Status:** Accepted (parameters are hypotheses until reviewer and operator data exist)
+- **Styles:** `config/styles.yaml` holds the 5 Appendix B styles plus the 4
+  B.7 styles. meme_reaction, commentary_overlay, tutorial_tip and
+  compilation_countdown are marked unavailable with reasons (missing operator
+  reactions or commentary, no mechanic detection, single moment).
+- **Selection:** `editing/styles.py` fits style ranges to a moment profile
+  (energy, humour, dialogue, impact, calm) with a recency penalty above 40 %
+  share. Reasons, runner-up, all scores and exclusions are recorded in the plan.
+- **Plan:** cold-open teaser when the payoff sits after 40 % of the clip
+  (cut points never inside words; the reaction sentence is completed). Speed
+  ramp only where no speech overlaps. Punch-ins anchored on the payoff and on
+  stressed lines, capped per 10 s with minimum spacing. Effects come from the
+  registered, project-synthesised SFX only: no stacking within 0.35 s, never
+  over speech, at most twice each.
+- **Render:** sendcmd-driven crop, per-segment trim/speed with fps
+  duplication, concat, zoompan, eq grade, libass captions (pop_word, karaoke,
+  fade, none) plus a hook banner, end freeze, timestamp regularisation. Audio:
+  stem, then SFX mixed relative to the stem peak, then two-pass loudnorm with a
+  measured true-peak retry loop.
+- **Integrity:** hook text is verbatim transcript or factual labels only.
+  Contributions are labelled "automated", and the publish gate still requires
+  human and creative review.
+
+## ADR-0016 Smart framing  [MEDIA]
+- **Date:** 2026-11-25 · **Status:** Accepted (provisional)
+- **Method:** motion-energy window search at 192×108 and 10 fps; contrast
+  saliency when the subject is still; instant reframe at scene cuts (from scene
+  detection); dead zone, smoothing and a speed limit. For third-person games
+  (`camera: third_person` in the game registry, set for Rockstar titles) the
+  crop is centre-weighted and follows motion only partly. Otherwise blur_fill
+  when no subject is trackable.
+- **Captions:** moved to an upper band when the tracked subject sits in the
+  default caption band.
+- **Not implemented:** facecam detection or layouts, learned subject detection.
+
+## ADR-0017 Ranker v1 with audio events  [ML]
+- **Date:** 2026-11-25 · **Status:** Accepted (unvalidated on real footage)
+- **Signals:** impact (explosion, gunshot, crash), laughter, scream, the
+  reaction pattern (an exclamation or laugh within 3 s after the payoff), a
+  setup line ("watch", "going to") before it, plus loudness, density and cuts.
+  Viability weights payoff 0.28, hook 0.18, story arc 0.18, intensity 0.14,
+  laugh/scream 0.10, density 0.07, visual 0.05. The payoff time is stored for
+  the planner. Model version `heuristic-v1-events`.

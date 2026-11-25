@@ -87,7 +87,10 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
     s = r["subtitles"]
     # measured, not configured: render captions alone and find their pixel bounds
     sa = q["safe_area"]
-    bounds = caption_bounds(Path(render_info["ass_path"]), cues, r["width"], r["height"])
+    hook = plan.get("hook") or {}
+    bound_items = cues + ([{"start_us": hook["start_us"], "end_us": hook["end_us"], "text": hook["text"]}]
+                          if hook.get("text") else [])
+    bounds = caption_bounds(Path(render_info["ass_path"]), bound_items, r["width"], r["height"])
     bad = safe_area_violations(bounds, r["width"], r["height"], sa)
     heights = [b["bbox"][3] - b["bbox"][1] for b in bounds if b["bbox"]]
     checks.append(_check("subtitle_safe_area", not bad,
@@ -105,7 +108,8 @@ def run_qa(render_info: dict, plan: dict, cfg: dict, contact_dir: Path) -> dict:
     # 5c. music in the output (R26): the pipeline adds no music, so any detected music came from the source
     try:
         from ..analysis.audio_events import music_fraction, tag
-        ev = tag(path, cfg)
+        # screen the source-audio stem: registered SFX added by the edit are licensed and excluded
+        ev = tag(Path(render_info.get("stem_path") or path), cfg)
         mf = music_fraction(ev, 0, int(dur * 1e6), cfg["analysis"]["music_threshold"])
         checks.append(_check("music_screen", mf <= cfg["analysis"]["max_music_fraction"], round(mf, 3),
                              f"<= {cfg['analysis']['max_music_fraction']} share of windows with music"))

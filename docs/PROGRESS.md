@@ -222,3 +222,29 @@ Append-only. CHECKPOINT entries are safe resumption points.
 ### CHECKPOINT 2026-11-25-b
 - **Next step:** unchanged. The operator must choose B-09 (unrestricted cloud
   network vs. Mac) before any real download.
+
+## 2026-11-25: Editing engine (operator: "do all this before I give you clips")  [EDIT, MEDIA, ML, QA]
+- Built: style catalogue and selection; smart framing (motion, contrast,
+  cut reframe, third-person centre mode); cold open; speed ramps;
+  punch-ins; project-owned SFX with a hash-checked registry; animated
+  captions (pop/karaoke/fade); hook and context text; subject-aware caption
+  placement; ranker v1 with audio events; true-peak retry loop.
+- Defects found by running and visual inspection, all fixed: zoompan+fps
+  stall (E-042), collapsed slow motion, AAC peak overshoot (E-043), captions
+  over the subject, subject lost after a cut, teaser cutting a word, effect
+  stacking, the cut being too subtle in the fixture, style choice
+  nondeterministic in the demo.
+- 78 tests pass. All 5 styles pass QA on the synthetic moment (E-044).
+
+### Self-critique
+1. Everything is validated on a synthetic fixture with a yellow box and TTS.
+   Comedic timing, hook quality and framing on real GTA footage are unproven.
+2. Hook text is template- and quote-based. It is grounded, but it will often
+   be bland compared with a human editor's line.
+3. Third-person framing is a centre-weighted guess. GTA cutscenes, aiming and
+   first-person modes are not distinguished.
+
+### CHECKPOINT 2026-11-25-c
+- **Next step:** the first real footage (B-09 network choice, then a link).
+  Calibrate thresholds (music, framing, ranker weights) on it. Facecam layout
+  is the next framing feature.

@@ -11,3 +11,4 @@ rockstar:
   restricted_content: [standalone_cutscene, spoiler, isolated_in_game_tv, pre_release_or_leak]
   known_third_party_risks: [in_game_radio_music]   # R26, ASSUMPTION A-010
   risk: high
+  camera: third_person          # chase camera keeps the player near the centre (framing hint)

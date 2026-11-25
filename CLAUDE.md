@@ -74,6 +74,8 @@ lawful alternative instead.
   analysis/audio_events (YAMNet music screen), qa/visual (flash, caption bounds),
   packaging (L0 bundles), publish/gate (offline gate), orchestrator (pipeline), demo, runreport, config, cli
 - `config/platforms/*.yaml`: per-platform export and packaging profiles
+- `config/styles.yaml`: style bible; `config/assets.yaml`: asset registry (regenerate SFX with scripts/make_sfx_assets.py)
+- `src/clipops/editing/`: styles (selection), framing (tracking), hooks, plan (timeline, zooms, SFX, captions)
 - `tests/`: unit (smoke), integration, e2e, fixtures
 - `schemas/`: rights_record.schema.json · `config/game_policies.yaml`: publisher policy registry
 - `reports/demo/`: recorded demo runs · `skills/`, `tools/`: from Phase 1 onward

@@ -1,0 +1,210 @@
+{
+  "run_id": "run_2dc429200ed5",
+  "purpose": "demo run (walking skeleton)",
+  "started_at": "2026-11-25T14:29:40+00:00",
+  "ended_at": "2026-11-25T14:30:22+00:00",
+  "code_version": "0.0.1",
+  "config_hash": "aed49ff852bfbfa0",
+  "host": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "python": "3.13.18"
+  },
+  "hardware_role": "cloud-dev-container",
+  "stages": [
+    {
+      "name": "fixture",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:40+00:00",
+      "duration_s": 4.679
+    },
+    {
+      "name": "source_add",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:44+00:00",
+      "source_id": "src_83ea7ad5eea8ded3",
+      "duration_s": 0.018
+    },
+    {
+      "name": "ingest",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:44+00:00",
+      "duration_s": 0.072
+    },
+    {
+      "name": "transcribe",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:45+00:00",
+      "realtime_factor": 0.049,
+      "duration_s": 3.173
+    },
+    {
+      "name": "audio_analysis",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:48+00:00",
+      "duration_s": 0.238
+    },
+    {
+      "name": "scene_detection",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:48+00:00",
+      "duration_s": 1.016
+    },
+    {
+      "name": "audio_events",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:49+00:00",
+      "duration_s": 0.314
+    },
+    {
+      "name": "wer",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:49+00:00",
+      "wer": 0.0,
+      "errors": 0,
+      "reference_words": 41,
+      "hypothesis_words": 41,
+      "duration_s": 0.0
+    },
+    {
+      "name": "candidates",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:49+00:00",
+      "proposed": 2,
+      "rejected": 2,
+      "duration_s": 0.003
+    },
+    {
+      "name": "plan",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:49+00:00",
+      "plan_id": "plan_83ea7ad5_00001020_funny_chaotic_v2",
+      "style": "funny_chaotic",
+      "layout": "tracked_crop",
+      "zooms": 4,
+      "sfx": 2,
+      "structure": "cold_open",
+      "duration_s": 0.5
+    },
+    {
+      "name": "render",
+      "status": "ok",
+      "started_at": "2026-11-25T14:29:50+00:00",
+      "short_id": "short_83ea7ad5_00001020_funny_chaotic_v2",
+      "duration_s": 21.849
+    },
+    {
+      "name": "qa",
+      "status": "ok",
+      "started_at": "2026-11-25T14:30:12+00:00",
+      "passed": true,
+      "failed": [],
+      "duration_s": 10.121
+    }
+  ],
+  "warnings": [
+    {
+      "stage": "source_add",
+      "code": "monetisation",
+      "message": "monetisation_allowed=no (game policy / rights class)"
+    },
+    {
+      "stage": "candidates",
+      "code": "heuristic_ranker",
+      "message": "ranking uses heuristic-v1-events: unvalidated, uncertainty reported high"
+    }
+  ],
+  "fallbacks": [],
+  "skipped": [],
+  "artefacts": [
+    {
+      "kind": "render",
+      "path": "/home/user/GTA/data/renders/src_83ea7ad5eea8ded3/short_83ea7ad5_00001020_funny_chaotic_v2.mp4",
+      "sha256": "2355814b7064702a83dd176a91bee7f1c6b69fb6fea4d4f437e0a4d7eb34c828",
+      "bytes": 850253
+    },
+    {
+      "kind": "contact_sheet",
+      "path": "/home/user/GTA/data/work/src_83ea7ad5eea8ded3/qa/short_83ea7ad5_00001020_funny_chaotic_v2_contact.png",
+      "sha256": "b0a9bea8d9aa27de97760d150f81c9f7588fbd1302440c955df66f395f5ab133",
+      "bytes": 37328
+    }
+  ],
+  "models": {
+    "asr": "faster-whisper:base.en:int8",
+    "audio_events": "yamnet-tflite:10c95ea3eb9a"
+  },
+  "qa_summary": {
+    "short_id": "short_83ea7ad5_00001020_funny_chaotic_v2",
+    "passed": true,
+    "failed": [],
+    "review_flags": [
+      "subtitle_confidence"
+    ],
+    "publishable": false
+  },
+  "publication_summary": "none: publishing not implemented (L0)",
+  "operator_actions": [
+    "Review short_83ea7ad5_00001020_funny_chaotic_v2: subtitle_confidence"
+  ],
+  "status": "ok",
+  "demo_summary": {
+    "fixture": "/home/user/GTA/data/sources/synthetic/demo_skeleton.mp4",
+    "wer": {
+      "wer": 0.0,
+      "errors": 0,
+      "reference_words": 41,
+      "hypothesis_words": 41,
+      "note": "synthetic TTS on clean bed; NOT representative of gaming audio"
+    },
+    "source_id": "src_83ea7ad5eea8ded3",
+    "candidates": {
+      "proposed": 2,
+      "rejected": 2
+    },
+    "top_candidate": {
+      "id": "cand_83ea7ad5_00001020",
+      "start_s": 1.02,
+      "end_s": 16.98,
+      "viability": 0.7099,
+      "covers_expected_moment": true,
+      "expected_s": [
+        2.0,
+        17.0
+      ]
+    },
+    "plan_id": "plan_83ea7ad5_00001020_funny_chaotic_v2",
+    "style": "funny_chaotic",
+    "style_reasons": [
+      "energy=0.733 contributes +1.20",
+      "dialogue=0.875 contributes +0.70"
+    ],
+    "structure": {
+      "name": "cold_open",
+      "notes": [
+        "cold open: payoff at 55% of the clip, teased first (2.2s), then the build-up"
+      ]
+    },
+    "framing": {
+      "layout": "tracked_crop",
+      "reason": "motion concentrated: median 100% fits a 9:16 window"
+    },
+    "zooms": 4,
+    "sfx": [
+      "whoosh",
+      "impact"
+    ],
+    "hook": "\u201cNo way.\u201d",
+    "contribution": [
+      "editorial_restructuring",
+      "narrative_framing",
+      "substantive_editing"
+    ],
+    "short": "/home/user/GTA/data/renders/src_83ea7ad5eea8ded3/short_83ea7ad5_00001020_funny_chaotic_v2.mp4",
+    "qa_passed": true,
+    "qa_failed": [],
+    "qa_review_flags": [
+      "subtitle_confidence"
+    ]
+  }
+}

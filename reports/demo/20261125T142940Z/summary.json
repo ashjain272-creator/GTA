@@ -1,0 +1,61 @@
+{
+  "fixture": "/home/user/GTA/data/sources/synthetic/demo_skeleton.mp4",
+  "wer": {
+    "wer": 0.0,
+    "errors": 0,
+    "reference_words": 41,
+    "hypothesis_words": 41,
+    "note": "synthetic TTS on clean bed; NOT representative of gaming audio"
+  },
+  "source_id": "src_83ea7ad5eea8ded3",
+  "candidates": {
+    "proposed": 2,
+    "rejected": 2
+  },
+  "top_candidate": {
+    "id": "cand_83ea7ad5_00001020",
+    "start_s": 1.02,
+    "end_s": 16.98,
+    "viability": 0.7099,
+    "covers_expected_moment": true,
+    "expected_s": [
+      2.0,
+      17.0
+    ]
+  },
+  "plan_id": "plan_83ea7ad5_00001020_funny_chaotic_v2",
+  "style": "funny_chaotic",
+  "style_reasons": [
+    "energy=0.733 contributes +1.20",
+    "dialogue=0.875 contributes +0.70"
+  ],
+  "structure": {
+    "name": "cold_open",
+    "notes": [
+      "cold open: payoff at 55% of the clip, teased first (2.2s), then the build-up"
+    ]
+  },
+  "framing": {
+    "layout": "tracked_crop",
+    "reason": "motion concentrated: median 100% fits a 9:16 window"
+  },
+  "zooms": 4,
+  "sfx": [
+    "whoosh",
+    "impact"
+  ],
+  "hook": "\u201cNo way.\u201d",
+  "contribution": [
+    "editorial_restructuring",
+    "narrative_framing",
+    "substantive_editing"
+  ],
+  "short": "/home/user/GTA/data/renders/src_83ea7ad5eea8ded3/short_83ea7ad5_00001020_funny_chaotic_v2.mp4",
+  "qa_passed": true,
+  "qa_failed": [],
+  "qa_review_flags": [
+    "subtitle_confidence"
+  ],
+  "status": "ok",
+  "run_report": "run_2dc429200ed5.json"
+}

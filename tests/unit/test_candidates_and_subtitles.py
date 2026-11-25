@@ -64,7 +64,7 @@ def test_short_and_dead_air_windows_are_rejected_with_reasons():
 
 def test_overlapping_candidates_are_deduplicated():
     words = [W(f"w{i}", i * 0.5, i * 0.5 + 0.4) for i in range(60)]
-    res = _gen(words, max_candidates_per_source=10)
+    res = _gen(words, max_candidates_per_source=10, min_viability=0.0)
     kept = [c for c in res["candidates"] if c["status"] == "proposed"]
     for i, a in enumerate(kept):
         for b in kept[i + 1:]:
@@ -107,5 +107,23 @@ def test_music_gate_rejects_music_and_fails_closed_when_unscreened():
     assert all(c["status"] == "rejected" and "music_screen" in c["rejection_reason"] for c in res["candidates"])
     res = _gen(words, ovr_events={"frames": [], "unscreened": True})
     assert all("not screened" in c["rejection_reason"] for c in res["candidates"])
-    res = _gen(words)                                   # screened, no music
-    assert any(c["status"] == "proposed" for c in res["candidates"])
+    res = _gen(words, min_viability=0.0)                # screened, no music: the gate itself passes
+    assert all(g["passed"] for c in res["candidates"] for g in c["gates"] if g["name"] == "music_screen")
+
+
+def test_impact_followed_by_reaction_outranks_flat_speech():
+    flat = [W(f"word{i}", 1 + i * 0.5, 1 + i * 0.5 + 0.4) for i in range(20)]
+    story = [W("Watch", 21.0, 21.3), W("this.", 21.4, 21.7), W("I", 22, 22.1), W("am", 22.2, 22.3),
+             W("going", 22.4, 22.6), W("to", 22.7, 22.8), W("jump.", 22.9, 23.3),
+             W("No", 26.2, 26.4), W("way!", 26.5, 26.9), W("That", 27, 27.2), W("worked!", 27.3, 27.8),
+             W("Best", 28.5, 28.8), W("jump", 28.9, 29.2), W("ever.", 29.3, 29.7)]
+    ev = {"unscreened": False, "frames": [{"t_us": int(t * 1e6), "music": 0.0, "speech": 0.6,
+                                           "explosion": 0.6 if 25.5 <= t <= 26.0 else 0.0}
+                                          for t in [x * 0.5 for x in range(0, 80)]]}
+    curve = [(t / 10, -40.0 if not 255 <= t <= 262 else -12.0) for t in range(600)]
+    res = _gen(flat + story, curve=curve, ovr_events=ev, min_viability=0.0, max_candidates_per_source=10)
+    ranked = [c for c in res["candidates"] if c["status"] == "proposed"]
+    top = ranked[0]
+    assert top["boundaries"]["start_us"] >= 20_000_000, [c["boundaries"] for c in ranked]
+    assert top["signals"]["impact_score"] >= 0.5 and top["signals"]["reaction"] > 0
+    assert top["signals"]["setup_present"] is True

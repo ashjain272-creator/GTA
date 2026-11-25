@@ -82,11 +82,17 @@ def main() -> int:
             extra, mix_inputs = f"[{n + 2}:a]", n + 3
         filters.append(f"{''.join(labels)}[{n}:a][imp]{extra}amix=inputs={mix_inputs}:normalize=0,"
                        f"atrim=0:{DURATION},aformat=channel_layouts=stereo[a]")
-        # video: moving test pattern, hard cut to a different scene at the impact
-        inputs += ["-f", "lavfi", "-i", f"testsrc2=s=1280x720:r=30:d={IMPACT_AT}",
-                   "-f", "lavfi", "-i", f"testsrc=s=1280x720:r=30:d={DURATION - IMPACT_AT}"]
+        # video: a "car" (yellow box) drives left→right and jumps (arc) into the impact at IMPACT_AT,
+        # then a hard cut to a second scene where it sits still. Exercises tracking and scene detection.
         v0 = n + 2 + (1 if args.music else 0)
-        filters.append(f"[{v0}:v][{v0 + 1}:v]concat=n=2:v=1:a=0,format=yuv420p[v]")
+        inputs += ["-f", "lavfi", "-i", f"color=c=0x3a4048:s=1280x720:r=30:d={IMPACT_AT}",
+                   "-f", "lavfi", "-i", f"color=c=0x8a7040:s=1280x720:r=30:d={DURATION - IMPACT_AT}",
+                   "-f", "lavfi", "-i", f"color=c=0xf2c200:s=150x70:r=30:d={DURATION}"]
+        filters.append(f"[{v0 + 2}:v]split[car1][car2]")
+        filters.append(f"[{v0}:v][car1]overlay=x='60+t*95':"
+                       f"y='420-if(between(t,7.5,{IMPACT_AT}),170*sin((t-7.5)/{IMPACT_AT - 7.5}*PI),0)':shortest=1[sc1]")
+        filters.append(f"[{v0 + 1}:v][car2]overlay=x=980:y=470:shortest=1[sc2]")
+        filters.append("[sc1][sc2]concat=n=2:v=1:a=0,format=yuv420p[v]")
         sh(["ffmpeg", "-hide_banner", "-y", *inputs, "-filter_complex", ";".join(filters),
             "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
             "-c:a", "aac", "-b:a", "160k", "-t", str(DURATION), str(out)])

@@ -45,10 +45,13 @@ def test_run_report_lists_every_stage_and_warning(demo):
     _, s, out = demo
     rep = json.loads((out / s["run_report"]).read_text())
     names = {st["name"] for st in rep["stages"]}
-    assert {"ingest", "transcribe", "audio_analysis", "scene_detection", "candidates", "plan",
+    assert {"ingest", "transcribe", "audio_analysis", "scene_detection", "audio_events", "candidates", "plan",
             "render", "qa"} <= names
+    plan = json.loads((out / "plan.json").read_text())
+    assert plan["style"]["selected_because"] and plan["framing"]["layout"] in {"tracked_crop", "blur_fill"}
+    assert plan["contribution"], "edit should document its contributions"
     codes = {w["code"] for w in rep["warnings"]}
-    assert {"heuristic_ranker", "no_style_engine"} <= codes        # limitations are surfaced
+    assert "heuristic_ranker" in codes                              # limitations are surfaced
     assert all(a["sha256"] for a in rep["artefacts"])
 
 
@@ -119,8 +122,10 @@ def test_l0_bundles_are_honest_and_platform_specific(demo, tmp_path):
     info = read_json(next((src_dir / "renders").glob("*.json")))
     metas = {p: make_bundle(cfg, src_dir, plan, info, qa, p, tmp_path) for p in ("youtube", "tiktok", "instagram")}
     for p, m in metas.items():
-        assert m["ready"] is False                                   # skeleton output must never be marked ready
-        assert "contribution_test" in m["verdict"]["blocking"]
+        assert m["ready"] is False                                   # never ready without human and creative review
+        assert {"human_review", "creative_review"} & set(m["verdict"]["blocking"])
+        contrib_ok = next(c for c in m["verdict"]["checks"] if c["name"] == "contribution_test")["passed"]
+        assert contrib_ok == (len(plan["contribution"]) >= 2)
         text = (tmp_path / info["short_id"] / p / "text.md").read_text()
         assert text.startswith("# NOT READY")
     assert metas["tiktok"]["watermark_allowed"] is False
@@ -139,7 +144,8 @@ def test_gate_can_pass_when_every_requirement_is_met(demo, tmp_path):
     cfg = config.load()
     src_dir = config.data_path(cfg, "work") / s["source_id"]
     plan = read_json(out / "plan.json") | {"contribution": ["narrative restructuring", "commentary captions"]}
-    qa = read_json(out / "qa.json") | {"review_flags": [], "creative_review": "reviewed: rubric record R-1"}
     info = read_json(next((src_dir / "renders").glob("*.json")))
+    # QA record of the render as it is now (an earlier test re-rendered it; the gate must see a matching hash)
+    qa = read_json(src_dir / "qa" / f"{info['short_id']}.json") | {"review_flags": [], "creative_review": "reviewed: rubric record R-1"}
     v = evaluate(cfg, src_dir, plan, info, qa, "youtube", load_profile(config.REPO, "youtube"))
     assert v["ready"], v["blocking"]
