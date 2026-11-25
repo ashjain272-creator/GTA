@@ -71,7 +71,9 @@ def transcribe_window(path: Path, start_us: int, end_us: int, cfg: dict, model_n
 
 
 def cross_verify(base: list[dict], refined: list[dict]) -> list[dict]:
-    """Mark refined words that the base model also produced (aligned by text); agreement = verified."""
+    """Mark refined words that the base model also produced (aligned by text); agreement = verified.
+    Unverified words with no base-model word within 0.4 s are dropped: Whisper invents phrases in
+    non-speech audio ("I don't know what I think." over Xonotic gunfire, E-052)."""
     import difflib
     import re as _re
     norm = lambda t: _re.sub(r"[^a-z0-9']", "", t.lower())  # noqa: E731
@@ -82,5 +84,7 @@ def cross_verify(base: list[dict], refined: list[dict]) -> list[dict]:
     out = []
     for i, w in enumerate(refined):
         v = i in verified
+        if not v and not any(x["start_us"] - 400_000 < w["end_us"] and w["start_us"] < x["end_us"] + 400_000 for x in base):
+            continue        # the refine model heard speech where the base model heard none: a hallucination, dropped
         out.append(dict(w, verified=v, confidence=max(w["confidence"], 0.9) if v else w["confidence"]))
     return out

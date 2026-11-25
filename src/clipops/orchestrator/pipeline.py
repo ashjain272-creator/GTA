@@ -36,6 +36,10 @@ _CODE_FILES = {"probe": "ingest/probe.py", "asr": "analysis/transcribe.py", "aud
 _PKG = Path(__file__).resolve().parents[1]
 
 
+def _code_hash_file(rel: str) -> str:
+    return hashlib.sha256((_PKG / rel).read_bytes()).hexdigest()[:12]
+
+
 def _code_hash(stage: str) -> str:
     """Hash of the stage's own source: editing the code invalidates its cached artefacts automatically."""
     f = _CODE_FILES.get(stage)
@@ -288,7 +292,7 @@ class Pipeline:
             return transcript
         a, e = b["start_us"] - 1_000_000, b["end_us"] + 1_000_000
         cache = d / "refined" / f"{cand['candidate_id']}_{model}.json"
-        key = _key("refine", model, transcript.get("_input_key"), a, e)
+        key = _key("refine", model, transcript.get("_input_key"), a, e, _code_hash_file("analysis/transcribe.py"))
         hit = _cached(cache, key)
         with self.report.stage("refine_captions") as st:
             if hit:

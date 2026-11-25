@@ -174,3 +174,12 @@ def test_event_window_end_lands_in_a_pause_not_mid_sentence():
     a = _speech_safe_start(words, 13_600_000, lo=10_000_000, hi=14_000_000)
     assert 11_600_000 < a <= 13_200_000
     assert _speech_safe_end(words, 20_000_000, lo=0, hi=30_000_000) == 20_000_000   # silence: unchanged
+
+
+@pytest.mark.smoke
+def test_cross_verify_drops_refine_hallucinations_in_silence():
+    from clipops.analysis.transcribe import cross_verify
+    base = [W("okay", 1.0, 1.3), W("go", 1.4, 1.6)]
+    refined = [W("Okay,", 1.0, 1.3), W("go.", 1.4, 1.6), W("I", 9.0, 9.2), W("don't", 9.2, 9.5), W("know.", 9.5, 9.9)]
+    out = cross_verify(base, refined)
+    assert [w["text"] for w in out] == ["Okay,", "go."] and all(w["verified"] for w in out)
