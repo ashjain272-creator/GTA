@@ -32,6 +32,7 @@ def main() -> int:
     ap.add_argument("--game", default=None)
     ap.add_argument("--max", type=int, default=5, help="maximum number of shorts")
     ap.add_argument("--out", default="out")
+    ap.add_argument("--include-weak", action="store_true", help="also keep shorts the machine review calls weak")
     a = ap.parse_args()
     cfg = config.load()
     rep = RunReport(cfg, f"clip_url {a.source}")
@@ -66,13 +67,18 @@ def main() -> int:
             if not qa["passed"]:
                 print(f"{info['short_id']}: rejected by QA ({', '.join(qa['failed'])})")
                 continue
+            mr = qa.get("creative_review_machine") or {}
+            if mr.get("verdict") == "weak" and not a.include_weak:
+                print(f"{info['short_id']}: held back, machine review says weak ({'; '.join(mr.get('weaknesses', []))})")
+                continue
             dst = out / Path(info["path"]).name
             shutil.copy2(info["path"], dst)
             made.append({"file": str(dst), "from_s": c["boundaries"]["start_us"] / 1e6,
                          "to_s": c["boundaries"]["end_us"] / 1e6, "style": plan["style"]["name"],
                          "why_style": plan["style"]["selected_because"], "hook": plan["hook"]["text"],
                          "structure": plan["structure"]["name"], "framing": plan["framing"]["layout"],
-                         "needs_review": qa["review_flags"], "brand_safety": plan["brand_safety"]})
+                         "needs_review": qa["review_flags"], "brand_safety": plan["brand_safety"],
+                         "machine_review": {k: mr.get(k) for k in ("overall", "verdict", "weaknesses")}})
             print(f"made {dst}  [{plan['style']['name']}]")
         (out / "summary.json").write_text(json.dumps(made, indent=2))
     rep.finish(Path(cfg["_repo"]) / "data" / "reports", "ok")

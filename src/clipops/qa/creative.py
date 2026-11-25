@@ -37,8 +37,17 @@ def review(plan: dict, qa: dict, candidate: dict | None = None) -> dict:
     # Pacing: dead air and length
     gaps = [(b["start_us"] - a["end_us"]) / 1e6 for a, b in zip(words, words[1:])]
     longest = max(gaps, default=0.0) if words else 0.0
-    s = 5 - (longest > 2.0) - (longest > 3.0) - (dur > 45) - (dur < 8)
-    out["pacing"] = {"score": _clamp(s), "evidence": f"duration {dur:.1f}s, longest pause {longest:.1f}s"}
+    # slow first beat: after any teaser, how long until the first word or the payoff?
+    teaser_us = next(((s_["src_end_us"] - s_["src_start_us"]) for s_ in plan.get("timeline", []) if s_["role"] == "teaser"), 0)
+    first_word = min((w["start_us"] for w in words if w["start_us"] >= teaser_us), default=None)
+    main_start = next((s_["src_start_us"] for s_ in plan.get("timeline", []) if s_["role"] != "teaser"), None)
+    pay = sig.get("payoff_us")
+    pay_out = (teaser_us + pay - main_start) if (pay and main_start is not None and pay >= main_start) else None
+    firsts = [t for t in (first_word, pay_out) if t is not None]
+    slow = ((min(firsts) - teaser_us) / 1e6) if firsts else 0.0
+    s = 5 - (longest > 2.0) - (longest > 3.0) - (dur > 45) - (dur < 8) - 2 * (slow > 6.0)
+    out["pacing"] = {"score": _clamp(s), "evidence": f"duration {dur:.1f}s, longest pause {longest:.1f}s, "
+                                                     f"first beat after {slow:.1f}s"}
 
     # Subtitles: accuracy proxy (cross-model agreement), reading speed, safe area
     if cues:

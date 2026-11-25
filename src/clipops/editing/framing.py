@@ -14,7 +14,9 @@ Layout decision, recorded with numbers:
 Known limits (stated, not hidden): motion is a proxy for "the subject". A
 static subject with a moving background (driving with a camera pan) defeats
 it, and that case falls back to blur_fill through the concentration test.
-Facecam detection is not implemented.
+Static stream overlays (sidebars, small webcams) are excluded by
+`game_viewport`; the crop centres on the game picture. Picture-in-picture
+webcams inside the game picture are not detected.
 """
 from __future__ import annotations
 
@@ -45,6 +47,35 @@ def _window_best(cols: np.ndarray, win: int) -> tuple[np.ndarray, np.ndarray, np
     total = cols.sum(axis=1)
     frac = np.where(total > 0, mass.max(axis=1) / np.maximum(total, 1e-6), 0.0)
     return mass.argmax(axis=1), frac, total
+
+
+def game_viewport(frames: np.ndarray, cfg: dict) -> tuple[float, float]:
+    """Horizontal span of the live game picture, excluding static stream overlays.
+
+    Streamed footage often has a static sidebar (follower goals, logos, a small
+    webcam). Its columns barely change over the window, while the game picture
+    changes almost everywhere. Columns where at least `viewport_active_rows` of
+    the rows vary are game; small holes are filled; the longest span wins. When
+    no clear overlay is found the whole frame is the viewport.
+    """
+    f = cfg["framing"]
+    act = (frames.std(axis=0) > f.get("viewport_std_floor", 4.0)).mean(axis=0) >= f.get("viewport_active_rows", 0.3)
+    hole = max(1, int(0.04 * AW))
+    idx = np.flatnonzero(act)
+    if len(idx) == 0:
+        return 0.0, 1.0
+    spans, a, b = [], idx[0], idx[0]
+    for i in idx[1:]:
+        if i - b <= hole:
+            b = i
+        else:
+            spans.append((a, b)); a = b = i
+    spans.append((a, b))
+    a, b = max(spans, key=lambda s: s[1] - s[0])
+    lo, hi = a / AW, (b + 1) / AW
+    if hi - lo < 0.5 or (lo < 0.04 and hi > 0.96):
+        return 0.0, 1.0
+    return round(float(lo), 4), round(float(hi), 4)
 
 
 def track(src: Path, start_s: float, dur_s: float, src_w: int, src_h: int, cfg: dict,
@@ -78,32 +109,37 @@ def track(src: Path, start_s: float, dur_s: float, src_w: int, src_h: int, cfg: 
         r = rows_m[i] if active[i] else rows_c[i]
         ys.append(float((r * yy).sum() / r.sum() / AH) if r.sum() > 0 else 0.5)
     third_person = camera in ("third_person", "first_person")   # both keep the subject/crosshair near the centre
-    cx, path, reacq = 0.5, [], 0
+    vp_lo, vp_hi = game_viewport(frames, cfg)
+    if vp_hi - vp_lo < wf:
+        vp_lo, vp_hi = 0.0, 1.0
+    centre = (vp_lo + vp_hi) / 2                                # the game's own centre, not the stream layout's
+    cx, path, reacq = centre, [], 0
     max_step = f["max_speed_frac_per_s"] / AFPS
     half = wf / 2
+    lo_c, hi_c = vp_lo + half, vp_hi - half
     for i in range(len(diffs)):
         if active[i] and m_frac[i] >= f["min_concentration"] * 0.8:
             target = (m_best[i] + win / 2) / AW
         elif c_total[i] > 0 and c_frac[i] >= f["min_concentration"]:
             target = (c_best[i] + win / 2) / AW
         else:
-            target = 0.5 if third_person else cx
+            target = centre if third_person else cx
         if third_person:
             follow = 0.0 if camera == "first_person" else f["third_person_follow"]   # crosshair is the centre; chase cam may drift a little
-            target = 0.5 + (target - 0.5) * follow
+            target = centre + (target - centre) * follow
         if cut[i - 1] if i > 0 else False:
-            cx = float(np.clip(target, half, 1 - half))               # a cut is already a jump: reframe at once
+            cx = float(np.clip(target, lo_c, hi_c))                   # a cut is already a jump: reframe at once
             reacq += 1
         elif abs(target - cx) > f["dead_zone_frac"]:
             cx += float(np.clip(f["smoothing"] * (target - cx), -max_step, max_step))
-        cx = float(np.clip(cx, half, 1 - half))
+        cx = float(np.clip(cx, lo_c, hi_c))
         path.append(cx)
     path = [path[0]] + path
     conc = float(np.median(m_frac[active])) if active.any() else 0.0
     con_ok = float(np.mean(c_frac >= f["min_concentration"]))
     active_share = float(active.mean())
     if camera == "first_person":
-        layout, reason = "tracked_crop", "first-person game: crop locked on the crosshair (screen centre)"
+        layout, reason = "tracked_crop", "first-person game: crop locked on the crosshair (game-picture centre)"
     elif conc >= f["min_concentration"] and active_share >= f["min_active_share"]:
         layout, reason = "tracked_crop", f"motion concentrated: median {conc:.0%} fits a 9:16 window"
     elif con_ok >= 0.6:
@@ -117,7 +153,7 @@ def track(src: Path, start_s: float, dur_s: float, src_w: int, src_h: int, cfg: 
     return {"layout": layout, "reason": reason, "concentration": round(conc, 3), "contrast_fit": round(con_ok, 3),
             "active_share": round(active_share, 3), "window_fraction": round(wf, 4), "scene_cuts_reframed": reacq,
             "subject_y": round(float(np.median(ys)), 3), "subject_y_track": [round(y, 3) for y in ys[::5]],
-            "camera": camera or "unknown", "keyframes": keyframes}
+            "camera": camera or "unknown", "game_viewport": [vp_lo, vp_hi], "keyframes": keyframes}
 
 
 def sendcmd_crop_x(keyframes: list[dict], src_w: int, crop_w: int, target: str = "crop@trk") -> str:

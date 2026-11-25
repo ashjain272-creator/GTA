@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 
+import pytest
+
 from clipops import config
 from clipops.candidates.generate import _blocks, generate
 from clipops.editing.plan import subtitle_cues
@@ -160,3 +162,15 @@ def test_licence_covered_music_passes_gate():
                    {"p50_lufs": -25.0}, {"class": "C", "grant": {"document_ref": "cc-by", "covers_audio": True}}, cfg, events=music)
     gates = [g for c in res["candidates"] for g in c["gates"] if g["name"] == "music_screen"]
     assert gates and all(g["passed"] and "covered by the source licence" in g["reason"] for g in gates)
+
+
+@pytest.mark.smoke
+def test_event_window_end_lands_in_a_pause_not_mid_sentence():
+    from clipops.candidates.generate import _speech_safe_end, _speech_safe_start
+    t = [(10.0, 10.4), (10.4, 10.8), (10.8, 11.6), (13.2, 13.5), (13.5, 13.8), (13.8, 14.2), (14.2, 14.6)]
+    words = [{"text": "w", "start_us": int(a * 1e6), "end_us": int(b * 1e6)} for a, b in t]
+    b = _speech_safe_end(words, 14_000_000, lo=8_000_000, hi=30_000_000)
+    assert 11_600_000 < b < 13_200_000                     # back to the 1.6 s pause, not into "when the world..."
+    a = _speech_safe_start(words, 13_600_000, lo=10_000_000, hi=14_000_000)
+    assert 11_600_000 < a <= 13_200_000
+    assert _speech_safe_end(words, 20_000_000, lo=0, hi=30_000_000) == 20_000_000   # silence: unchanged

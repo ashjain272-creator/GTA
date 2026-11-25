@@ -10,7 +10,7 @@ from __future__ import annotations
 import bisect
 import re
 
-MODEL_VERSION = "heuristic-v4-sentence-aligned"
+MODEL_VERSION = "heuristic-v5-pause-aligned"
 EXCLAIM = re.compile(r"\b(no way|oh my|wow|what|let'?s go|yes|no no|insane|holy)\b|!", re.I)
 
 
@@ -294,15 +294,45 @@ def _event_windows(events, curve, base, cut_times, words, duration_us, c) -> lis
             b = min(tail_cuts)
         if b - a < min_d:                            # too short after snapping: extend the end, then the start
             b = min(duration_us, a + min_d)
-        for w in words:                              # never inside a word
-            if w["start_us"] < a < w["end_us"]:
-                a = w["start_us"]
-            if w["start_us"] < b < w["end_us"]:
-                b = w["end_us"]
+        b = _speech_safe_end(words, b, lo=cl[-1] + 1_000_000, hi=a + max_d)
+        a = _speech_safe_start(words, a, lo=a - 3_000_000, hi=cl[0] - 500_000)
         a, b = max(0, a), min(duration_us, b)
         if min_d <= b - a <= max_d:
             out.append((a, b))
     return out
+
+
+PAUSE_US, TAIL_US = 600_000, 400_000
+
+
+def _speech_safe_end(words, b: int, lo: int, hi: int) -> int:
+    """End in a pause, never mid-sentence: unpunctuated speech has no sentence marks, so a pause of
+    >= 0.6 s is the boundary. Prefer the last pause before `b` (after `lo`); else the next one before `hi`."""
+    inside = [w for w in words if w["start_us"] < b + PAUSE_US and w["end_us"] > b - PAUSE_US]
+    if not inside:
+        return b
+    ws = sorted(words, key=lambda w: w["start_us"])
+    for x, y in reversed(list(zip(ws, ws[1:]))):
+        if lo <= x["end_us"] < b and y["start_us"] - x["end_us"] >= PAUSE_US:
+            return min(x["end_us"] + TAIL_US, y["start_us"] - 100_000)
+    for x, y in zip(ws, ws[1:]):
+        if b <= x["end_us"] <= hi and y["start_us"] - x["end_us"] >= PAUSE_US:
+            return min(x["end_us"] + TAIL_US, y["start_us"] - 100_000)
+    return b
+
+
+def _speech_safe_start(words, a: int, lo: int, hi: int) -> int:
+    """Start in a pause, never mid-sentence: the latest pause start <= `hi`, searched back to `lo`."""
+    if not [w for w in words if w["start_us"] < a + 300_000 and w["end_us"] > a - 300_000]:
+        return a
+    ws = sorted(words, key=lambda w: w["start_us"])
+    best = None
+    for x, y in zip(ws, ws[1:]):
+        if y["start_us"] - x["end_us"] >= PAUSE_US and lo <= y["start_us"] <= hi:
+            best = max(y["start_us"] - 300_000, x["end_us"] + 50_000)
+            if y["start_us"] >= a:
+                break
+    return best if best is not None else a
 
 
 def _music_gate(events: dict | None, start: int, end: int, a: dict, rights: dict | None = None) -> dict:

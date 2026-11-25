@@ -156,3 +156,29 @@ def test_flash_mitigation_is_chosen_for_a_flashing_window(tmp_path):
          "geq=lum='if(lt(mod(T*8,1),0.5),235,16)':cb=128:cr=128,format=yuv420p", "-c:v", "libx264", "-qp", "0", str(src)])
     r = source_flash_risk(src, 0, 3, CFG)
     assert r["risk"] and r["mitigation"] and r["mitigation"]["threshold"] <= 0.5
+
+
+@pytest.mark.smoke
+def test_game_viewport_excludes_static_stream_sidebar():
+    import numpy as np
+    from clipops.editing.framing import AH, AW, game_viewport
+    rng = np.random.default_rng(0)
+    frames = np.full((40, AH, AW), 30.0, np.float32)
+    x0 = int(0.17 * AW)
+    frames[:, :, x0:] += rng.uniform(0, 120, (40, AH, AW - x0))       # live game picture
+    frames[:, :20, :25] += rng.uniform(0, 120, (40, 20, 25))           # small webcam in the static sidebar
+    lo, hi = game_viewport(frames, {"framing": {}})
+    assert abs(lo - 0.17) < 0.02 and hi == 1.0
+    full = 30.0 + rng.uniform(0, 120, (40, AH, AW)).astype(np.float32)
+    assert game_viewport(full, {"framing": {}}) == (0.0, 1.0)
+
+
+@pytest.mark.smoke
+def test_caption_merges_split_decimal_tokens():
+    from clipops.editing.plan import caption_cues
+    words = [{"text": w, "start_us": i * 300_000, "end_us": i * 300_000 + 250_000, "confidence": 0.9}
+             for i, w in enumerate(["fixed", "this", "in", "0", ".9", "today."])]
+    style = {"caption": {"animation": "pop_word", "case": "upper"}}
+    scfg = {"max_words_per_cue": 4, "max_cue_s": 3.0, "mask_profanity": True}
+    text = " ".join(c["text"] for c in caption_cues(words, lambda t: t, style, scfg))
+    assert "0.9" in text and " .9" not in text

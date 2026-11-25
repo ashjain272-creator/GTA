@@ -106,7 +106,7 @@ framing:                        # smart vertical framing (editing/framing.py); a
   max_speed_frac_per_s: 0.6     # camera may move at most this share of the width per second
   cut_mean_diff: 25.0           # mean abs frame difference treated as a scene cut (reframe instantly)
   contrast_floor: 30.0          # pixel contrast vs frame median counted as "subject" when nothing moves
-  third_person_follow: 0.35     # third-person games: how far the crop may follow motion away from centre
+  third_person_follow: 0.15     # third-person games: how far the crop may follow motion away from centre (centred UI text must stay in)
 flash_mitigation:               # photosensitivity filter settings tried in order until the WCAG check passes (E-045)
   ladder: [[30, 0.5], [30, 0.35], [30, 0.2]]
 caption_placement:
@@ -120,6 +120,7 @@ edit:
   teaser_after_s: 0.7
   zoom_min_gap_s: 1.2
   sfx_speech_guard_s: 0.15      # an effect may not start within this distance of a spoken word
+  max_silent_buildup_s: 5.0     # with no setup speech, keep at most this much lead-up before the payoff
 
 render:
   width: 1080

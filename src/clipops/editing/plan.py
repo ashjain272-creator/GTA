@@ -42,6 +42,10 @@ def build_segments(cand: dict, words: list[dict], style: dict, cfg: dict) -> tup
     sig = cand.get("signals", {})
     p = sig.get("payoff_us")
     notes: list[str] = []
+    cap = int(cfg["edit"].get("max_silent_buildup_s", 5.0) * 1e6)
+    if p and p - S > cap and not any(w["start_us"] < p - 1_000_000 for w in words if w["start_us"] >= S):
+        notes.append(f"build-up trimmed from {(p - S) / 1e6:.1f}s to {cap / 1e6:.1f}s: no setup speech before the payoff")
+        S = p - cap
     main = [{"src_start_us": S, "src_end_us": E, "speed": 1.0, "role": "main"}]
     ramp = style.get("speed_ramp", {})
     if ramp.get("enabled") and p and sig.get("impact_score", 0) >= 0.15:
@@ -112,6 +116,11 @@ def caption_cues(words: list[dict], fmap, style: dict, scfg: dict) -> list[dict]
         text = w["text"].upper() if c["case"] == "upper" else w["text"]
         if scfg.get("mask_profanity", True):
             text = mask_profanity(text)
+        if mapped and re.match(r"^[.,%:]\d|^%$|^'(s|re|ll|ve|d|t|m)\b", text, re.I) and a - mapped[-1]["end_us"] < 300_000:
+            prev = mapped[-1]                                       # ASR token split ("0" + ".9", "it" + "'s"): one word
+            prev.update(text=prev["text"] + text, end_us=max(b, prev["end_us"]),
+                        confidence=min(prev["confidence"], w["confidence"]))
+            continue
         mapped.append({"text": text, "start_us": a, "end_us": max(b, a + 80_000), "confidence": w["confidence"],
                        "stress": bool(EXCLAIM.search(w["text"]))})
     cues, cur = [], []
