@@ -18,6 +18,8 @@ dependencies = [
 dev = ["pytest>=8"]
 # analysis models: speech recognition and audio-event tagging (music screen)
 asr = ["faster-whisper>=1.2,<2", "ai-edge-litert>=2.4,<3"]
+# URL acquisition for rights-recorded sources (AM-29); Unlicense
+acquire = ["yt-dlp>=2026.11"]
 
 [project.scripts]
 clipops = "clipops.cli:main"

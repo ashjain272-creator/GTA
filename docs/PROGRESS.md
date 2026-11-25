@@ -201,3 +201,16 @@ Append-only. CHECKPOINT entries are safe resumption points.
 - **Next step:** the originality/contribution layer (CHECKPOINT 2026-11-22-c);
   M4 benchmarks once the Mac is connected or results are pushed.
 - **Hazards:** operator disk 6.7 GB free.
+
+## 2026-11-25: Principle 1 changed by operator (AM-29); URL acquisition  [RIGHTS, ARCH]
+- On operator instruction, YouTube downloads are permitted for class A/B
+  sources with yt-dlp, with guardrails (no DRM, cookies, proxies, evasion or
+  crawling). ADR-0013, R36, B-09.
+- `source add` accepts a YouTube URL. 5 unit tests (preconditions,
+  forbidden options, mock-downloader flow). The secret scan now covers only
+  git-trackable files (it was scanning .venv).
+- Not live-tested: YouTube is unreachable from this environment (B-09).
+
+### CHECKPOINT 2026-11-25-a
+- **Next step:** operator chooses B-09 (a) or (b); then acquire the operator's
+  first link and run the full pipeline on real footage.

@@ -22,6 +22,7 @@ copyleft or unknown licence that is not listed here.
 | flatbuffers, packaging | various | Apache-2.0 (packaging: Apache-2.0 OR BSD-2-Clause) | yes |
 | typing_extensions | 4.16.0 | PSF-2.0 | yes |
 | ai-edge-litert | 2.4.0 | Apache-2.0 | yes |
+| yt-dlp (optional `acquire` extra) | 2026.11.23 | Unlicense | yes (licence). Use carries YouTube ToS risk, see R36 |
 | ml-dtypes | 0.7.0 | Apache-2.0 | yes |
 | backports-strenum | 1.3.1 | MIT | yes |
 

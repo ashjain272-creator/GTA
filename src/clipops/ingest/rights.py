@@ -45,7 +45,8 @@ def game_policy_entries(repo: Path, game: str | None) -> list[dict]:
 
 
 def build_record(repo: Path, path: Path, klass: str, *, game: str | None = None,
-                 grant: dict | None = None, synthetic: bool = False, notes: str | None = None) -> dict:
+                 grant: dict | None = None, synthetic: bool = False, notes: str | None = None,
+                 platform: str = "file", origin_url: str | None = None) -> dict:
     if klass in REFUSED:
         raise RightsRefused(REFUSED[klass])
     sid, digest = source_id_for(path)
@@ -59,7 +60,7 @@ def build_record(repo: Path, path: Path, klass: str, *, game: str | None = None,
     elif policies and all(p["_monetisation_permitted"] for p in policies) and klass == "A":
         monet = "yes"
     rec = {
-        "source_id": sid, "platform": "file", "origin_url": None, "origin_path": str(path),
+        "source_id": sid, "platform": platform, "origin_url": origin_url, "origin_path": str(path),
         "sha256": digest, "class": klass, "owner_declared_by_operator": klass == "A",
         "owner_verified_by_oauth": False, "grant": grant,
         "game_policies": [{k: v for k, v in p.items() if not k.startswith("_")} for p in policies],

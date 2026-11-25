@@ -24,6 +24,11 @@ rights:
   allowed_production_classes: [A, B, C]
   require_game_policy_record: true
 
+acquire:                        # URL acquisition, class A/B only (AM-29)
+  format: "bv*[height<=1080]+ba/b[height<=1080]"
+  max_bytes_per_s: 5000000      # polite client; never evade rate limits
+  sleep_between_requests_s: 1
+
 publishing:
   # Autonomy levels per spec 11.6. The system never raises these itself.
   default_autonomy_level: L0

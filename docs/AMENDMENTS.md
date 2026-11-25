@@ -165,6 +165,25 @@ Compilations "with little or no narrative" fail by definition.
 active (E-031), and GTA footage carries a radio-music claim risk (R26). Longer
 shorts need an explicit plan-level reason and a clean music screen.
 
+**AM-29 · OPERATOR-APPROVED CHANGE TO PRINCIPLE 1 · 1.3, 4.3, 4.4 (2026-11-25).**
+The operator instructed that downloading from YouTube be permitted (spec 1.10:
+principles may be changed by the operator). Scope, as implemented in
+`src/clipops/ingest/acquire.py`:
+- Allowed: one YouTube video or Short per URL, via yt-dlp, only when the
+  operator declares class A (owned) or class B (written creator permission,
+  grant file required).
+- Still refused: classes C-F by URL; DRM-protected media; cookies, logins
+  or credentials; proxies or IP rotation; rate-limit or bot-check evasion;
+  channel or playlist crawling.
+- Accepted risk: YouTube's Terms of Service restrict downloading except as
+  the service permits or with prior written permission. Older versions named
+  YouTube and the rights holders, and the current wording was not fully read
+  (R36). Every acquisition records this basis in the run report and the
+  rights record.
+- Unchanged: the reused-content and originality rules (AM-27) and the
+  Rockstar monetisation restriction (AM-05) apply to acquired footage exactly
+  as to files.
+
 ## 6. Document-level
 
 **AM-23 · CLARIFICATION · X1.** The spec (~394 KB as Markdown) cannot be held in

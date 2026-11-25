@@ -44,6 +44,18 @@ them against the live docs and updates this file.
   no "older than the project's minimum" line, and free space above 50 GiB on
   the volume used for `data/`.
 
+## B-09 Where YouTube downloads can run
+- **Blocks:** live use of `clipops source add <youtube-url>` (AM-29).
+- **Why:** the cloud environment allows only listed hosts. YouTube serves
+  video from dynamically named hosts, which cannot be listed exactly.
+- **Operator choice:** (a) switch the "GTA" cloud environment to
+  unrestricted network access (simplest; every future session on it can
+  reach any public host); or (b) run acquisition on the Mac
+  (`uv sync --extra acquire`, then the same command), which needs disk
+  space (B-08).
+- **Then automatically:** one real acquisition is tested and recorded as
+  evidence, and the full pipeline runs on that video.
+
 ## B-02 No authorised source footage
 - **Blocks:** real ingestion, the evaluation corpus (Gate G1), every quality claim.
 - **Why:** Principle 1. No footage has been declared owned, permitted or licensed.

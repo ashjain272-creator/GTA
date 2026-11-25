@@ -58,11 +58,15 @@ def test_ledgers_have_entries():
 
 def test_no_secret_material_committed():
     pattern = re.compile(r"(AIza[0-9A-Za-z_\-]{30,}|sk-ant-[0-9A-Za-z_\-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
+    import subprocess
+    tracked = subprocess.run(["git", "ls-files", "-co", "--exclude-standard"], cwd=REPO,
+                             capture_output=True, text=True, check=True).stdout.split()
     offenders = []
-    for p in REPO.rglob("*"):
-        if p.is_file() and ".git" not in p.parts and p.suffix in {".py", ".md", ".json", ".yaml", ".yml", ".toml", ".txt"}:
+    for rel in tracked:                    # files that are, or could be, committed (respects .gitignore)
+        p = REPO / rel
+        if p.is_file() and p.suffix in {".py", ".md", ".json", ".yaml", ".yml", ".toml", ".txt"}:
             if pattern.search(p.read_text(errors="ignore")):
-                offenders.append(str(p.relative_to(REPO)))
+                offenders.append(rel)
     assert offenders == []
 
 

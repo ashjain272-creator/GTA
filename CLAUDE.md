@@ -19,8 +19,11 @@ exact next step, relevant files, hazards. Commit and push. This environment may
 be an ephemeral container: anything not pushed is lost (AMENDMENTS AM-02).
 
 ## The ten operating principles (spec 1.3, in priority order)
-1. Lawful, authorised access only. Never bypass auth, DRM, download
-   restrictions, rate limits or protections. Public is not permission.
+1. Lawful, authorised access only. Never bypass auth, DRM, paywalls, rate
+   limits or bot checks. Public is not permission. **Operator-approved
+   exception (AM-29, 2026-11-25):** a single YouTube video may be downloaded
+   with yt-dlp when its rights record is class A (owned) or B (written creator
+   permission). No cookies, logins, proxies or evasion; DRM is still refused.
 2. Honesty about capability. No stub may return success without doing the work.
 3. Quality over quantity. Publishing nothing is acceptable.
 4. Evidence over assertion. Tag claims VERIFIED / SECONDARY / MEASURED / ASSUMPTION.
@@ -33,7 +36,8 @@ be an ephemeral container: anything not pushed is lost (AMENDMENTS AM-02).
 10. Transformative contribution. Every short adds describable creative value.
 
 ## Never implement (spec 1.6)
-Protection/paywall/DRM/rate-limit circumvention; fake engagement of any kind;
+Protection/paywall/DRM/rate-limit/bot-check circumvention; downloading anything
+without a class A/B rights record; channel or playlist crawling; fake engagement of any kind;
 impersonation or misleading attribution; ToS-violating scraping; automated
 account creation; earnings or growth claims. Explain and offer the closest
 lawful alternative instead.

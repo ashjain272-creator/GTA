@@ -164,3 +164,13 @@ Role tags: [ARCH] systems architect, [MEDIA] media engineer, [SEC] security,
   3. `resources.max_heavy_jobs: 2` unchanged (16 GB shared by ASR and render).
   4. Real-footage runs stay blocked by disk space (B-08).
 - **Revisit when:** the operator-machine hardware.json and benchmark results exist.
+
+## ADR-0013 URL acquisition with yt-dlp for rights-recorded YouTube videos  [ARCH, RIGHTS]
+- **Date:** 2026-11-25 · **Status:** Accepted on operator instruction (AM-29)
+- **Choice:** `clipops source add <youtube-url> --declare-rights A|B [--grant f.json]`
+  downloads the single item (≤1080p, merged to MP4, rate-limited) with yt-dlp
+  (Unlicense, optional extra `acquire`), then registers it like a file, with
+  `platform: youtube` and `origin_url`. Provenance goes in the rights record.
+- **Not verified end to end:** YouTube is unreachable from the cloud
+  environment (exact-host allowlists cannot cover YouTube's dynamic media
+  hosts), so only a mock-downloader test exercises the flow (B-09).

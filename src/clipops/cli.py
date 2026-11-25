@@ -55,8 +55,8 @@ def main(argv: list[str] | None = None) -> int:
     h.add_argument("--json", action="store_true")
 
     src = sub.add_parser("source").add_subparsers(dest="sub", required=True)
-    sa = src.add_parser("add", help="register a local file with a declared rights class")
-    sa.add_argument("path")
+    sa = src.add_parser("add", help="register a local file, or a YouTube video URL (class A/B only), with a declared rights class")
+    sa.add_argument("path", help="local file path or YouTube video URL")
     sa.add_argument("--declare-rights", required=True, choices=list("ABCDEF"))
     sa.add_argument("--grant", help="JSON file with grant details (required for class B/C)")
     sa.add_argument("--game")
@@ -105,6 +105,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "source":
         grant = json.loads(Path(args.grant).read_text()) if args.grant else None
+        if args.path.startswith(("http://", "https://")):
+            return _run(cfg, "source add (url)", lambda p, r: {"source_id": p.add_url(
+                args.path, args.declare_rights, game=args.game, grant=grant, notes=args.notes)})
         return _run(cfg, "source add", lambda p, r: {"source_id": p.add_source(
             Path(args.path), args.declare_rights, game=args.game, grant=grant, notes=args.notes)})
     if args.cmd == "ingest":
