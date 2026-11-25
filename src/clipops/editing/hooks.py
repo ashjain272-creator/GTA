@@ -125,9 +125,13 @@ def make_hook(device: str, words: list[dict], payoff_us: int | None, game: str |
         sents = _sentences(words)
         punctuated = any(re.search(r"[.!?]$", x[-1]["text"]) for x in sents)
         first = next((_clean(" ".join(w["text"] for w in st)) for st in sents if len(st) >= 3), None) if punctuated else None
-        line = setup or (quote["text"] if quote else None) or first
+        options = [x for x in (setup, quote["text"] if quote else None, first) if x]
+        line = next((x for x in options if len(x) <= 48), None) or (options[0] if options else None)
+        if line and len(line) > 48:                    # too long: cut at a clause boundary when there is one
+            clause = re.match(r"^(.{12,46}?[,;:])\s", line)
+            line = clause.group(1)[:-1] + "..." if clause else line[:45].rsplit(" ", 1)[0] + "..."
         if line:
-            label = (label + " · " if label else "") + (line if len(line) <= 48 else line[:45].rsplit(" ", 1)[0] + "...")
+            label = (label + " · " if label else "") + line
         if label and line:
             return {"device": "context", "text": label, "source": "game from rights record + speaker's own words"}
     if quote:

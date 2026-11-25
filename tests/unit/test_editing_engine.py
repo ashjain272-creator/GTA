@@ -182,3 +182,14 @@ def test_caption_merges_split_decimal_tokens():
     scfg = {"max_words_per_cue": 4, "max_cue_s": 3.0, "mask_profanity": True}
     text = " ".join(c["text"] for c in caption_cues(words, lambda t: t, style, scfg))
     assert "0.9" in text and " .9" not in text
+
+
+@pytest.mark.smoke
+def test_context_hook_prefers_a_complete_short_line_over_a_truncated_one():
+    from clipops.editing.hooks import make_hook
+    text = ("Okay, this is the insanity that is going to be required to make this storage system work. "
+            "And it's a little bit crazy!").split()
+    words = [{"text": t, "start_us": i * 300_000, "end_us": i * 300_000 + 250_000, "confidence": 0.9}
+             for i, t in enumerate(text)]
+    h = make_hook("context", words, payoff_us=None, game="Luanti")
+    assert h["text"] == "Luanti · And it's a little bit crazy!" and "..." not in h["text"]
