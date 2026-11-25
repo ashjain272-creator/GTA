@@ -94,4 +94,5 @@ def review(plan: dict, qa: dict, candidate: dict | None = None) -> dict:
     weak = [f"{k}: {v['evidence']}" for k, v in out.items() if v["score"] < 3]
     return {"method": "machine proxy for Appendix C (not a substitute for human review)",
             "scores": out, "overall": round(overall, 2), "weaknesses": weak,
-            "verdict": "strong" if overall >= 4 else "acceptable" if overall >= 3.2 else "weak"}
+            "verdict": ("strong" if overall >= 4 and not weak            # strong means no rubric item below 3
+                        else "acceptable" if overall >= 3.2 and len(weak) <= 2 else "weak")}
